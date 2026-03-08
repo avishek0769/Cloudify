@@ -8,15 +8,15 @@ RUN curl -sL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get install -y nodejs
 RUN apt-get install git -y
 
-ENV GITHUB_REPO_URL=url-to-your-repo
-
 WORKDIR /home/app
 COPY script.js script.js
+COPY main.sh main.sh
 COPY package*.json .
+COPY .env .env
 
 RUN npm install
-RUN git clone $GITHUB_REPO_URL /home/app/output
 
 RUN chmod +x script.js
+RUN chmod +x main.sh
 
-CMD ["node", "script.js"]
+ENTRYPOINT [ "/home/app/main.sh" ]
