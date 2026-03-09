@@ -5,6 +5,7 @@ import { ECSClient, RunTaskCommand } from "@aws-sdk/client-ecs";
 
 const app = express();
 const PORT = 6000;
+let LOGS = {};
 
 const ecsClient = new ECSClient({
     region: "ap-south-1",
@@ -58,6 +59,40 @@ app.post("/deploy", async (req, res) => {
             url: `http://${projectId}.localhost:6001`,
         },
     });
+});
+
+app.post("/webhook/logs/:projectId", (req, res) => {
+    const { projectId } = req.params;
+    const { logs, logsStatus } = req.body;
+    console.log("Log --> ", logs);
+
+    if (!LOGS[projectId]) {
+        LOGS[projectId] = { status: "", logs: [] };
+    }
+
+    LOGS[projectId].logs.push(...logs);  // TODO: Store to DB
+    LOGS[projectId].status = logsStatus;
+
+    return res.send("Got");
+});
+
+app.get("/logs/:projectId", (req, res) => {
+    const { projectId } = req.params;
+
+    if (!LOGS[projectId]) {
+        return res.json({ error: "Logs for this project does not exists" });
+    }
+
+    const logsChunk = LOGS[projectId].logs;
+    const logsStatus = LOGS[projectId].status;
+
+    LOGS[projectId].logs = [];
+
+    if (logsStatus == "end") {
+        delete LOGS[projectId];
+    }
+
+    return res.json({ logs: logsChunk, logsStatus });
 });
 
 app.listen(6000, () => console.log(`API Server running on ${PORT}...`));

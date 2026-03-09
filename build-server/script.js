@@ -15,24 +15,42 @@ const s3 = new S3Client({
 });
 
 const PROJECT_ID = process.env.PROJECT_ID;
-const PATH_TO_PACKAGE_JSON = process.env.PATH_
+const PATH_TO_PACKAGE_JSON = process.env.PATH_;
+const API_SERVER_HOST = "https://r51klsgs-6000.inc1.devtunnels.ms";
+let logs = []
+let timer;
 
-console.log("Starting building...");
+async function sendLogs(logsStatus) {
+    const logsChunk = logs
+    logs = []
+    await fetch(`${API_SERVER_HOST}/webhook/logs/${PROJECT_ID}`, {
+        method: "POST",
+        headers: {
+            "Content-type": "application/json"
+        },
+        body: JSON.stringify({ logs: logsChunk, logsStatus }),
+    });
+}
 
 const outputDir = path.join(import.meta.dirname, "output", PATH_TO_PACKAGE_JSON || "");
 const p = exec(
     `cd ${outputDir} && npm install --legacy-peer-deps && npm run build`,
 );
 
+console.log("Starting building...");
+
 p.stderr.on("data", (chunk) => {
+    logs.push(chunk.toString())
     console.log("Std Err --> ", chunk.toString());
 });
 
 p.stdout.on("data", (chunk) => {
+    logs.push(chunk.toString())
     console.log(chunk.toString());
 });
 
 p.stdout.on("error", (error) => {
+    logs.push(error.toString())
     console.log("Error --> ", error.toString());
 });
 
@@ -56,6 +74,13 @@ p.stdout.on("close", async () => {
 
             await s3.send(command);
             console.log("Upload complete");
+            
+            clearInterval(timer)
+            sendLogs("end")
         }
     }
 });
+
+timer = setInterval(async () => {
+    await sendLogs("ongoing")
+}, 4000)
