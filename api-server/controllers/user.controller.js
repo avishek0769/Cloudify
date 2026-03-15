@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
-import prisma from "../utils/prima.js";
+import { prisma } from "../utils/prima.js";
 
 const registerUser = asyncHandler(async (req, res) => {
     const { fullname, email, password } = req.body;
@@ -14,6 +14,10 @@ const registerUser = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Email already in use" });
     }
 
+    const newUser = await prisma.user.create({
+        data: { fullname, email, password, refreshToken: "" },
+    });
+
     const accessToken = jwt.sign(
         { userId: newUser.id, fullname },
         process.env.JWT_SECRET,
@@ -25,17 +29,13 @@ const registerUser = asyncHandler(async (req, res) => {
         { expiresIn: "7d" },
     );
 
-    const newUser = await prisma.user.create({
-        data: { fullname, email, password, refreshToken },
+    await prisma.user.update({
+        where: { id: newUser.id },
+        data: { refreshToken },
     });
 
     return res
         .status(201)
-        .json({
-            message: "User registered successfully",
-            accessToken,
-            refreshToken,
-        })
         .cookie("accessToken", accessToken, {
             httpOnly: true,
             secure: false,
@@ -45,6 +45,11 @@ const registerUser = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: false,
             maxAge: 7 * 24 * 60 * 60 * 1000,
+        })
+        .json({
+            message: "User registered successfully",
+            accessToken,
+            refreshToken,
         });
 });
 
@@ -72,12 +77,12 @@ const loginUser = asyncHandler(async (req, res) => {
     );
     return res
         .status(200)
-        .json({ message: "Login successful", accessToken })
         .cookie("accessToken", accessToken, {
             httpOnly: true,
             secure: false,
             maxAge: 3 * 24 * 60 * 60 * 1000,
-        });
+        })
+        .json({ message: "Login successful", user });
 });
 
 const getUserProfile = asyncHandler(async (req, res) => {

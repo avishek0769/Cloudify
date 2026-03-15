@@ -8,15 +8,15 @@ const verifyStrictJWT = async (req, res, next) => {
             throw new Error("Access Token is required");
         }
 
-        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const user = await prisma.user.findUnique({
             where: {
-                id: decodedToken._id,
+                id: decodedToken.userId,
             },
             select: {
                 id: true,
                 email: true,
-                name: true,
+                fullname: true,
             },
         });
 
@@ -26,6 +26,7 @@ const verifyStrictJWT = async (req, res, next) => {
         next();
     }
     catch (error) {
+        console.log(error)
         next(new Error("Your Access Token expired !"));
     }
 };
@@ -34,10 +35,10 @@ const verifyJWT = async (req, res, next) => {
     const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
 
     if (token) {
-        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const user = await prisma.user.findUnique({
             where: {
-                id: decodedToken._id,
+                id: decodedToken.userId,
             },
             select: {
                 id: true,
