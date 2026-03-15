@@ -23,7 +23,7 @@ let timer;
 async function sendLogs(logsStatus) {
     const logsChunk = logs
     logs = []
-    await fetch(`${API_SERVER_HOST}/webhook/logs/${PROJECT_ID}`, {
+    await fetch(`${API_SERVER_HOST}/api/v1/logs/webhook/${PROJECT_ID}`, {
         method: "POST",
         headers: {
             "Content-type": "application/json"
@@ -79,6 +79,7 @@ p.stdout.on("close", async () => {
             sendLogs("end")
         }
     }
+    process.exit(0);
 });
 
 timer = setInterval(async () => {
