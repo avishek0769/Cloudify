@@ -1,7 +1,67 @@
+import { prisma } from "../utils/prima.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createProject = asyncHandler(async (req, res) => {
-    
+    const { name, slug, githubUrl } = req.body;
+
+    const project = await prisma.project.findUnique({
+        where: {
+            subdomain: slug,
+        },
+    });
+
+    if (project) {
+        return res
+            .status(400)
+            .json({
+                status: "error",
+                message: "Project slug is already taken",
+            });
+    }
+
+    const newProject = await prisma.project.create({
+        name,
+        subdomain: slug,
+        githubUrl,
+    });
+
+    return res.json({ status: "success", data: { newProject } });
 });
 
-export { createProject };
+const projectSlugAvailable = asyncHandler(async (req, res) => {
+    const { slug } = req.params;
+
+    const project = await prisma.project.findUnique({
+        where: {
+            subdomain: slug,
+        },
+    });
+
+    return res.json({ status: "success", data: { available: !project } });
+});
+
+const getProjectsByUser = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    const projects = await prisma.project.findMany({
+        where: {
+            userId: userId,
+        },
+    });
+
+    return res.json({ status: "success", data: { projects } });
+});
+
+const getProjectById = asyncHandler(async (req, res) => {
+    const { projectId } = req.params;
+
+    const project = await prisma.project.findUnique({
+        where: {
+            id: projectId,
+        },
+    });
+
+    return res.json({ status: "success", data: { project } });
+});
+
+export { createProject, projectSlugAvailable, getProjectsByUser, getProjectById };
