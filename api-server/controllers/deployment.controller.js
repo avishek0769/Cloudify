@@ -56,4 +56,16 @@ const deployProject = asyncHandler(async (req, res) => {
     });
 });
 
-export { deployProject };
+const getDeploymentsForProject = asyncHandler(async (req, res) => {
+    const { projectId } = req.params;
+
+    const deployments = await prisma.deployment.findMany({
+        where: {
+            projectId: projectId,
+        },
+    });
+
+    return res.json({ status: "success", data: { deployments } });
+});
+
+export { deployProject, getDeploymentsForProject };
