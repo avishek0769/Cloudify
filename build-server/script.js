@@ -15,24 +15,33 @@ const s3 = new S3Client({
 });
 
 const PROJECT_ID = process.env.PROJECT_ID;
+const DEPLOYMENT_ID = process.env.DEPLOYMENT_ID;
 const PATH_TO_PACKAGE_JSON = process.env.PATH_;
 const API_SERVER_HOST = "https://r51klsgs-6000.inc1.devtunnels.ms";
-let logs = []
+let logs = [];
 let timer;
 
 async function sendLogs(logsStatus) {
-    const logsChunk = logs
-    logs = []
-    await fetch(`${API_SERVER_HOST}/api/v1/logs/webhook/${PROJECT_ID}`, {
+    const logsChunk = logs;
+    logs = [];
+    await fetch(`${API_SERVER_HOST}/api/v1/logs/webhook/${DEPLOYMENT_ID}`, {
         method: "POST",
         headers: {
-            "Content-type": "application/json"
+            "Content-type": "application/json",
         },
-        body: JSON.stringify({ logs: logsChunk, logsStatus }),
+        body: JSON.stringify({
+            logs: logsChunk,
+            logsStatus,
+            deploymentId: DEPLOYMENT_ID,
+        }),
     });
 }
 
-const outputDir = path.join(import.meta.dirname, "output", PATH_TO_PACKAGE_JSON || "");
+const outputDir = path.join(
+    import.meta.dirname,
+    "output",
+    PATH_TO_PACKAGE_JSON || "",
+);
 const p = exec(
     `cd ${outputDir} && npm install --legacy-peer-deps && npm run build`,
 );
@@ -40,23 +49,28 @@ const p = exec(
 console.log("Starting building...");
 
 p.stderr.on("data", (chunk) => {
-    logs.push(chunk.toString())
+    logs.push(chunk.toString());
     console.log("Std Err --> ", chunk.toString());
 });
 
 p.stdout.on("data", (chunk) => {
-    logs.push(chunk.toString())
+    logs.push(chunk.toString());
     console.log(chunk.toString());
 });
 
 p.stdout.on("error", (error) => {
-    logs.push(error.toString())
+    logs.push(error.toString());
     console.log("Error --> ", error.toString());
 });
 
 p.stdout.on("close", async () => {
     console.log("Build complete");
-    const distPath = path.join(import.meta.dirname, "output", PATH_TO_PACKAGE_JSON || "", "dist");
+    const distPath = path.join(
+        import.meta.dirname,
+        "output",
+        PATH_TO_PACKAGE_JSON || "",
+        "dist",
+    );
     const files = fs.readdirSync(distPath, { recursive: true });
 
     for (const file of files) {
@@ -74,14 +88,14 @@ p.stdout.on("close", async () => {
 
             await s3.send(command);
             console.log("Upload complete");
-            
-            clearInterval(timer)
-            sendLogs("end")
+
+            clearInterval(timer);
+            sendLogs("end");
         }
     }
     process.exit(0);
 });
 
 timer = setInterval(async () => {
-    await sendLogs("ongoing")
-}, 4000)
+    await sendLogs("ongoing");
+}, 4000);
