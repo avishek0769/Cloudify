@@ -5,7 +5,12 @@ let LOGS = {};
 
 const logsWebhook = asyncHandler(async (req, res) => {
     const { deploymentId } = req.params;
-    const { logs, logsStatus } = req.body;
+    const { logs, logsStatus, webhookSecret } = req.body;
+
+    if (webhookSecret !== process.env.WEBHOOK_SECRET) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
     console.log("Log --> ", logs);
 
     if (!LOGS[deploymentId]) {
@@ -15,11 +20,10 @@ const logsWebhook = asyncHandler(async (req, res) => {
     LOGS[deploymentId].logs.push(...logs);
     LOGS[deploymentId].status = logsStatus;
 
-    await prisma.logs.createMany({
+    await prisma.log_Events.createMany({
         data: logs.map((log) => ({
             log,
-            status: logsStatus,
-            deploymentId: log.deploymentId,
+            deploymentId: deploymentId,
         })),
     });
 
@@ -51,7 +55,7 @@ const fetchLogsPolling = asyncHandler(async (req, res) => {
 const fetchAllLogs = asyncHandler(async (req, res) => {
     const { deploymentId } = req.params;
 
-    const logs = await prisma.log.findMany({
+    const logs = await prisma.log_Events.findMany({
         where: {
             deploymentId: deploymentId,
         },

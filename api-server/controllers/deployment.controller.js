@@ -13,13 +13,22 @@ const ecsClient = new ECSClient({
 });
 
 const deployProject = asyncHandler(async (req, res) => {
-    const { githubUrl, pathToPackageJson } = req.body;
+    const { pathToPackageJson } = req.query;
     const { projectId } = req.params;
+
+    const project = await prisma.project.findUnique({
+        where: {
+            id: projectId
+        },
+    });
+
+    if (!project) {
+        return res.status(404).json({ status: "error", message: "Project not found" });
+    }
 
     const deployment = await prisma.deployment.create({
         data: {
-            projectId,
-            githubUrl,
+            projectId: project.id
         },
     });
 
@@ -44,10 +53,11 @@ const deployProject = asyncHandler(async (req, res) => {
                 {
                     name: process.env.CONTAINER_NAME,
                     environment: [
-                        { name: "GITHUB_REPO_URL", value: githubUrl },
+                        { name: "GITHUB_REPO_URL", value: project.githubUrl },
                         { name: "PROJECT_ID", value: projectId },
                         { name: "PATH_", value: pathToPackageJson || "" },
                         { name: "DEPLOYMENT_ID", value: deployment.id || "" },
+                        { name: "WEBHOOK_SECRET", value: process.env.WEBHOOK_SECRET || "" },
                     ],
                 },
             ],
@@ -56,16 +66,10 @@ const deployProject = asyncHandler(async (req, res) => {
 
     await ecsClient.send(command);
 
-    const project = await prisma.deployment.findUnique({
-        where: {
-            projectId,
-        },
-    });
-
     return res.json({
         status: "queued",
         data: {
-            projectId,
+            ...deployment,
             url: `http://${project.subdomain}.localhost:6001`,
         },
     });

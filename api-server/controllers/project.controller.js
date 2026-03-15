@@ -20,9 +20,12 @@ const createProject = asyncHandler(async (req, res) => {
     }
 
     const newProject = await prisma.project.create({
-        name,
-        subdomain: slug,
-        githubUrl,
+        data: {
+            name,
+            subdomain: slug,
+            githubUrl,
+            userId: req.user.id,
+        }
     });
 
     return res.json({ status: "success", data: { newProject } });
