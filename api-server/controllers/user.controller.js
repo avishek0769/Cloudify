@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import jwt from "jsonwebtoken";
-import { prisma } from "../utils/prima.js";
+import { prisma } from "../utils/prisma.js";
 
 const registerUser = asyncHandler(async (req, res) => {
     const { fullname, email, password } = req.body;

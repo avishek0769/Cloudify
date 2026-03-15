@@ -1,4 +1,4 @@
-import { prisma } from "../utils/prima.js";
+import { prisma } from "../utils/prisma.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const createProject = asyncHandler(async (req, res) => {

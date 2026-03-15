@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../utils/prima.js";
+import { prisma } from "../utils/prisma.js";
 
 const verifyStrictJWT = async (req, res, next) => {
     try {

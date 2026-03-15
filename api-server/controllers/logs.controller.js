@@ -1,5 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { prisma } from "../utils/prima.js";
+import { prisma } from "../utils/prisma.js";
 
 let LOGS = {};
 

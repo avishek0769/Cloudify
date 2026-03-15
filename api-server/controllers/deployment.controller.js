@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { ECSClient, RunTaskCommand } from "@aws-sdk/client-ecs";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { prisma } from "../utils/prima.js";
+import { prisma } from "../utils/prisma.js";
 
 const ecsClient = new ECSClient({
     region: "ap-south-1",
