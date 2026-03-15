@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "dotenv/config";
 import express from "express";
 import logsRouter from "./routers/logs.route.js";
 import projectRouter from "./routers/project.route.js";
