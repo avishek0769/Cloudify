@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { ECSClient, RunTaskCommand } from "@aws-sdk/client-ecs";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { prisma } from "../utils/prima.js";
 
 const ecsClient = new ECSClient({
     region: "ap-south-1",
@@ -14,6 +15,13 @@ const ecsClient = new ECSClient({
 const deployProject = asyncHandler(async (req, res) => {
     const { githubUrl, pathToPackageJson } = req.body;
     const { projectId } = req.params;
+
+    const deployment = await prisma.deployment.create({
+        data: {
+            projectId,
+            githubUrl,
+        },
+    });
 
     const command = new RunTaskCommand({
         cluster: process.env.ECS_CLUSTER_NAME,
@@ -39,6 +47,7 @@ const deployProject = asyncHandler(async (req, res) => {
                         { name: "GITHUB_REPO_URL", value: githubUrl },
                         { name: "PROJECT_ID", value: projectId },
                         { name: "PATH_", value: pathToPackageJson || "" },
+                        { name: "DEPLOYMENT_ID", value: deployment.id || "" },
                     ],
                 },
             ],
@@ -47,11 +56,17 @@ const deployProject = asyncHandler(async (req, res) => {
 
     await ecsClient.send(command);
 
+    const project = await prisma.deployment.findUnique({
+        where: {
+            projectId,
+        },
+    });
+
     return res.json({
         status: "queued",
         data: {
             projectId,
-            url: `http://${projectId}.localhost:6001`,
+            url: `http://${project.subdomain}.localhost:6001`,
         },
     });
 });

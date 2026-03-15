@@ -4,7 +4,7 @@ import { verifyStrictJWT } from "../middlewares/auth.middleware.js";
 
 const logsRouter = Router();
 
-logsRouter.post("/webhook/:projectId", verifyStrictJWT, logsWebhook);
-logsRouter.get("/:projectId", verifyStrictJWT, fetchLogsPolling);
+logsRouter.post("/webhook/:deploymentId", verifyStrictJWT, logsWebhook);
+logsRouter.get("/deployment/:deploymentId", verifyStrictJWT, fetchLogsPolling);
 
 export default logsRouter;

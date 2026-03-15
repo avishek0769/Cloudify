@@ -16,7 +16,7 @@ const errorHandler = (err, req, res, next) => {
 app.use(express.json());
 
 app.use("/api/v1/project", projectRouter)
-app.use("/api/v1/deploy", deployRouter);
+app.use("/api/v1/deployment", deployRouter);
 app.use("/api/v1/logs", logsRouter);
 
 app.use(errorHandler);
