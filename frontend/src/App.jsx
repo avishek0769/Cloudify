@@ -1,0 +1,250 @@
+import { useCallback, useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import AuthView from "./components/AuthView";
+import TopBar from "./components/TopBar";
+import { callApi } from "./lib/api";
+import DeploymentsPage from "./pages/DeploymentsPage";
+import ProjectsPage from "./pages/ProjectsPage";
+
+function AppShell() {
+    const [bootLoading, setBootLoading] = useState(true);
+    const [user, setUser] = useState(null);
+    const navigate = useNavigate();
+    const [authMode, setAuthMode] = useState("login");
+    const [authForm, setAuthForm] = useState({
+        fullname: "",
+        email: "",
+        password: "",
+    });
+    const [authLoading, setAuthLoading] = useState(false);
+    const [authError, setAuthError] = useState("");
+
+    const [projects, setProjects] = useState([]);
+    const [projectsLoading, setProjectsLoading] = useState(false);
+    const [projectForm, setProjectForm] = useState({
+        name: "",
+        slug: "",
+        githubUrl: "",
+    });
+    const [slugState, setSlugState] = useState({
+        checking: false,
+        available: null,
+    });
+    const [projectMutationLoading, setProjectMutationLoading] = useState(false);
+    const [projectError, setProjectError] = useState("");
+    const [refreshTick, setRefreshTick] = useState(0);
+
+    const loadProfile = useCallback(async () => {
+        const response = await callApi("/user/profile");
+        setUser(response.user);
+        return response.user;
+    }, []);
+
+    const loadProjects = useCallback(async (userId) => {
+        setProjectsLoading(true);
+        try {
+            const response = await callApi(`/project/all/${userId}`);
+            setProjects(response?.data?.projects || []);
+        } finally {
+            setProjectsLoading(false);
+        }
+    }, []);
+
+    const loadProjectById = useCallback(async (projectId) => {
+        try {
+            const response = await callApi(`/project/${projectId}`);
+            const project = response?.data?.project;
+            if (!project) return;
+            setProjects((previous) =>
+                previous.some((entry) => entry.id === project.id)
+                    ? previous
+                    : [project, ...previous],
+            );
+        } catch {
+            // Ignore errors while route attempts to resolve project metadata.
+        }
+    }, []);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const bootstrap = async () => {
+            try {
+                const currentUser = await loadProfile();
+                if (mounted && currentUser?.id) {
+                    await loadProjects(currentUser.id);
+                }
+            } catch {
+                if (mounted) setUser(null);
+            } finally {
+                if (mounted) setBootLoading(false);
+            }
+        };
+
+        bootstrap();
+        return () => {
+            mounted = false;
+        };
+    }, [loadProfile, loadProjects]);
+
+    const handleAuthSubmit = async (event) => {
+        event.preventDefault();
+        setAuthError("");
+        setAuthLoading(true);
+
+        try {
+            if (authMode === "register") {
+                await callApi("/user/register", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        fullname: authForm.fullname,
+                        email: authForm.email,
+                        password: authForm.password,
+                    }),
+                });
+            } else {
+                await callApi("/user/login", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        email: authForm.email,
+                        password: authForm.password,
+                    }),
+                });
+            }
+
+            const currentUser = await loadProfile();
+            if (currentUser?.id) {
+                await loadProjects(currentUser.id);
+                navigate("/projects", { replace: true });
+            }
+        } catch (error) {
+            setAuthError(error.message || "Authentication failed");
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+    const checkSlug = async () => {
+        const cleanedSlug = projectForm.slug.trim();
+        if (!cleanedSlug) {
+            setSlugState({ checking: false, available: null });
+            return;
+        }
+
+        setSlugState({ checking: true, available: null });
+        try {
+            const response = await callApi(`/project/slug/${cleanedSlug}`);
+            setSlugState({
+                checking: false,
+                available: !!response?.data?.available,
+            });
+        } catch {
+            setSlugState({ checking: false, available: false });
+        }
+    };
+
+    const handleProjectCreate = async (event) => {
+        event.preventDefault();
+        if (!user?.id) return;
+
+        setProjectMutationLoading(true);
+        setProjectError("");
+
+        try {
+            await callApi("/project/create", {
+                method: "POST",
+                body: JSON.stringify(projectForm),
+            });
+            setProjectForm({
+                name: "",
+                slug: "",
+                githubUrl: "",
+            });
+            setSlugState({ checking: false, available: null });
+            await loadProjects(user.id);
+        } catch (error) {
+            setProjectError(error.message || "Could not create project");
+        } finally {
+            setProjectMutationLoading(false);
+        }
+    };
+
+    const refreshAll = async () => {
+        if (!user?.id) return;
+        await loadProjects(user.id);
+        setRefreshTick((previous) => previous + 1);
+    };
+
+    if (bootLoading) {
+        return (
+            <main className="screen shell loading-shell">
+                <div className="aurora aurora-left" />
+                <div className="aurora aurora-right" />
+                <p className="loading-text">
+                    Warming your deployment command center...
+                </p>
+            </main>
+        );
+    }
+
+    if (!user) {
+        return (
+            <AuthView
+                authMode={authMode}
+                setAuthMode={setAuthMode}
+                authForm={authForm}
+                setAuthForm={setAuthForm}
+                authLoading={authLoading}
+                authError={authError}
+                onSubmit={handleAuthSubmit}
+            />
+        );
+    }
+
+    return (
+        <main className="screen shell">
+            <TopBar user={user} onRefresh={refreshAll} />
+
+            <Routes>
+                <Route path="/" element={<Navigate to="/projects" replace />} />
+                <Route
+                    path="/projects"
+                    element={
+                        <ProjectsPage
+                            projects={projects}
+                            projectsLoading={projectsLoading}
+                            projectForm={projectForm}
+                            setProjectForm={setProjectForm}
+                            slugState={slugState}
+                            checkSlug={checkSlug}
+                            projectMutationLoading={projectMutationLoading}
+                            projectError={projectError}
+                            handleProjectCreate={handleProjectCreate}
+                        />
+                    }
+                />
+                <Route
+                    path="/projects/:projectId/deployments"
+                    element={
+                        <DeploymentsPage
+                            projects={projects}
+                            loadProjectById={loadProjectById}
+                            refreshTick={refreshTick}
+                        />
+                    }
+                />
+                <Route path="*" element={<Navigate to="/projects" replace />} />
+            </Routes>
+        </main>
+    );
+}
+
+function App() {
+    return (
+        <BrowserRouter>
+            <AppShell />
+        </BrowserRouter>
+    );
+}
+
+export default App;
