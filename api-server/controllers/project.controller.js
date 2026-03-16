@@ -67,4 +67,9 @@ const getProjectById = asyncHandler(async (req, res) => {
     return res.json({ status: "success", data: { project } });
 });
 
-export { createProject, projectSlugAvailable, getProjectsByUser, getProjectById };
+export {
+    createProject,
+    projectSlugAvailable,
+    getProjectsByUser,
+    getProjectById,
+};

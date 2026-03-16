@@ -16,6 +16,13 @@ const deployProject = asyncHandler(async (req, res) => {
     const { pathToPackageJson } = req.query;
     const { projectId } = req.params;
 
+    if (!pathToPackageJson || !String(pathToPackageJson).trim()) {
+        return res.status(400).json({
+            status: "error",
+            message: "pathToPackageJson is required while creating deployment",
+        });
+    }
+
     const project = await prisma.project.findUnique({
         where: {
             id: projectId
@@ -28,7 +35,8 @@ const deployProject = asyncHandler(async (req, res) => {
 
     const deployment = await prisma.deployment.create({
         data: {
-            projectId: project.id
+            projectId: project.id,
+            pathToPackageJson: String(pathToPackageJson).trim(),
         },
     });
 
@@ -55,7 +63,7 @@ const deployProject = asyncHandler(async (req, res) => {
                     environment: [
                         { name: "GITHUB_REPO_URL", value: project.githubUrl },
                         { name: "PROJECT_ID", value: projectId },
-                        { name: "PATH_", value: pathToPackageJson || "" },
+                        { name: "PATH_", value: deployment.pathToPackageJson || "" },
                         { name: "DEPLOYMENT_ID", value: deployment.id || "" },
                         { name: "WEBHOOK_SECRET", value: process.env.WEBHOOK_SECRET || "" },
                     ],

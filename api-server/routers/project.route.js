@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { createProject, projectSlugAvailable, getProjectsByUser, getProjectById } from "../controllers/project.controller.js";
+import {
+	createProject,
+	projectSlugAvailable,
+	getProjectsByUser,
+	getProjectById,
+} from "../controllers/project.controller.js";
 import { verifyStrictJWT } from "../middlewares/auth.middleware.js";
 
 const projectRouter = Router();
