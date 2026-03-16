@@ -15,13 +15,7 @@ const ecsClient = new ECSClient({
 const deployProject = asyncHandler(async (req, res) => {
     const { pathToPackageJson } = req.query;
     const { projectId } = req.params;
-
-    if (!pathToPackageJson || !String(pathToPackageJson).trim()) {
-        return res.status(400).json({
-            status: "error",
-            message: "pathToPackageJson is required while creating deployment",
-        });
-    }
+    const normalizedPath = String(pathToPackageJson || "").trim();
 
     const project = await prisma.project.findUnique({
         where: {
@@ -36,7 +30,7 @@ const deployProject = asyncHandler(async (req, res) => {
     const deployment = await prisma.deployment.create({
         data: {
             projectId: project.id,
-            pathToPackageJson: String(pathToPackageJson).trim(),
+            pathToPackageJson: normalizedPath,
         },
     });
 

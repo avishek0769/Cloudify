@@ -22,12 +22,11 @@ function CreateDeploymentModal({
                     pushed to your GitHub repository.
                 </p>
                 <label>
-                    package.json folder path
+                    package.json folder path (optional)
                     <input
                         value={pathValue}
                         onChange={(event) => setPathValue(event.target.value)}
                         placeholder="apps/web"
-                        required
                     />
                 </label>
                 {deployError && <p className="error-text">{deployError}</p>}
@@ -43,7 +42,7 @@ function CreateDeploymentModal({
                         type="button"
                         className="btn btn-primary"
                         onClick={onConfirm}
-                        disabled={deploying || !pathValue.trim()}
+                        disabled={deploying}
                     >
                         {deploying ? "Queueing..." : "Create"}
                     </button>
