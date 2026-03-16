@@ -14,6 +14,14 @@ const logsWebhook = asyncHandler(async (req, res) => {
     console.log("Log --> ", logs);
 
     if (!LOGS[deploymentId]) {
+        await prisma.deployment.update({
+            where: {
+                id: deploymentId,
+            },
+            data: {
+                status: "IN_PROGRESS",
+            },
+        });
         LOGS[deploymentId] = { status: "", logs: [] };
     }
 
@@ -43,6 +51,14 @@ const fetchLogsPolling = asyncHandler(async (req, res) => {
     LOGS[deploymentId].logs = [];
 
     if (logsStatus == "end") {
+        await prisma.deployment.update({
+            where: {
+                id: deploymentId,
+            },
+            data: {
+                status: "READY",
+            },
+        });
         delete LOGS[deploymentId];
     }
 

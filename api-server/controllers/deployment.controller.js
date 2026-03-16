@@ -95,4 +95,20 @@ const getDeploymentsForProject = asyncHandler(async (req, res) => {
     return res.json({ status: "success", data: { deployments } });
 });
 
-export { deployProject, getDeploymentsForProject };
+const fetchDeploymentDetails = asyncHandler(async (req, res) => {
+    const { deploymentId } = req.params;
+
+    const deployment = await prisma.deployment.findUnique({
+        where: {
+            id: deploymentId,
+        },
+    });
+
+    if (!deployment) {
+        return res.status(404).json({ status: "error", message: "Deployment not found" });
+    }
+
+    return res.json({ status: "success", data: { deployment } });
+});
+
+export { deployProject, getDeploymentsForProject, fetchDeploymentDetails };

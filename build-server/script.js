@@ -77,7 +77,6 @@ const buildAndUpload = async () => {
 
             p.on("close", (code) => {
                 if (code === 0) {
-                    logsBuffer.push("Build process completed successfully.");
                     resolve()
                 }
                 else reject(new Error(`Build failed with exit code ${code}`));
@@ -112,6 +111,7 @@ const buildAndUpload = async () => {
             await s3.send(command);
         }
 
+        logsBuffer.push("Build process completed successfully.");
         clearInterval(timer);
         await sendLogs("end");
         process.exit(0);
