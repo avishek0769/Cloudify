@@ -341,7 +341,16 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick }) {
                                 <h4>Preview URL</h4>
                                 <p className="stat mono">
                                     {selectedProject?.subdomain
-                                        ? `http://${selectedProject.subdomain}.localhost:6001`
+                                        ? (
+                                            <a
+                                                href={`https://${selectedProject.subdomain}.vercel.avishekadhikary.tech`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="preview-link"
+                                            >
+                                                https://{selectedProject.subdomain}.vercel.avishekadhikary.tech
+                                            </a>
+                                        )
                                         : "-"}
                                 </p>
                             </article>

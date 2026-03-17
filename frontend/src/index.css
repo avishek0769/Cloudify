@@ -305,6 +305,26 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.09);
 }
 
+.project-card {
+  gap: 0.7rem;
+}
+
+.project-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.project-card-info {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.project-github {
+  overflow-wrap: anywhere;
+}
+
 .item-title {
   font-weight: 600;
   color: #f2f2f2;
@@ -313,6 +333,21 @@ input:focus {
 .item-pill {
   font-size: 0.76rem;
   color: var(--muted);
+}
+
+.preview-link {
+  color: #8bb4f7;
+  text-decoration: none;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  display: inline-block;
+  transition: color 180ms ease, text-decoration 180ms ease;
+}
+
+.preview-link:hover {
+  color: #b3cfff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .stats-grid {

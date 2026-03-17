@@ -31,24 +31,48 @@ function ProjectsPage({
                         </p>
                     )}
                     {projects.map((project) => (
-                        <button
+                        <article
                             key={project.id}
-                            className="list-item"
+                            className="list-item project-card"
                             onClick={() =>
                                 navigate(`/projects/${project.id}/deployments`)
                             }
-                            type="button"
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    navigate(`/projects/${project.id}/deployments`);
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
                         >
-                            <div>
+                            <div className="project-card-head">
                                 <p className="item-title">{project.name}</p>
-                                <p className="muted mono">
-                                    {project.subdomain}
-                                </p>
+                                <span className="item-pill">
+                                    {isoToReadable(project.createdAt)}
+                                </span>
                             </div>
-                            <span className="item-pill">
-                                {isoToReadable(project.createdAt)}
-                            </span>
-                        </button>
+
+                            <div className="project-card-info">
+                                <p className="muted mono">
+                                    Subdomain: {project.subdomain}
+                                </p>
+                                <p className="muted mono project-github">
+                                    Repo: {project.githubUrl}
+                                </p>
+                                <div>
+                                    <a
+                                        href={`https://${project.subdomain}.vercel.avishekadhikary.tech`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="preview-link mono"
+                                        onClick={(event) => event.stopPropagation()}
+                                    >
+                                        https://{project.subdomain}.vercel.avishekadhikary.tech
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
                     ))}
                 </div>
             </section>
