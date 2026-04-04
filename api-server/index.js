@@ -7,7 +7,7 @@ import userRouter from "./routers/user.route.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
-const PORT = 6000;
+const PORT = 7000;
 
 const errorHandler = (err, req, res, next) => {
     const statusCode = err.statusCode || 500;
@@ -26,4 +26,4 @@ app.use("/api/v1/logs", logsRouter);
 
 app.use(errorHandler);
 
-app.listen(6000, () => console.log(`API Server running on ${PORT}...`));
+app.listen(PORT, () => console.log(`API Server running on ${PORT}...`));
