@@ -15,10 +15,15 @@ function ProjectsPage({
     const navigate = useNavigate();
 
     return (
-        <section className="page-grid projects-layout">
-            <section className="panel">
+        <section className="page-grid projects-layout projects-page">
+            <section className="panel projects-list-panel">
                 <div className="panel-head">
-                    <h3>Projects</h3>
+                    <div className="panel-title-group">
+                        <h3>Projects</h3>
+                        <p className="muted panel-subtitle">
+                            Tap a project card to open its deployments.
+                        </p>
+                    </div>
                     {projectsLoading && (
                         <span className="muted">Loading...</span>
                     )}
@@ -72,14 +77,25 @@ function ProjectsPage({
                                     </a>
                                 </div>
                             </div>
+
+                            <div className="project-card-footer">
+                                <span className="project-card-cta mono">
+                                    Open deployments
+                                </span>
+                            </div>
                         </article>
                     ))}
                 </div>
             </section>
 
-            <section className="panel">
+            <section className="panel create-project-panel">
                 <div className="panel-head">
-                    <h3>Create Project</h3>
+                    <div className="panel-title-group">
+                        <h3>Create Project</h3>
+                        <p className="muted panel-subtitle">
+                            Add your repo and reserve a unique subdomain.
+                        </p>
+                    </div>
                 </div>
                 <form
                     className="form-grid compact"

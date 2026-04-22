@@ -228,6 +228,7 @@ input:focus {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  flex-wrap: wrap;
 }
 
 .user-chip {
@@ -237,6 +238,7 @@ input:focus {
   border-radius: 999px;
   padding: 0.4rem 0.8rem;
   font-size: 0.8rem;
+  overflow-wrap: anywhere;
 }
 
 .page-grid {
@@ -270,10 +272,15 @@ input:focus {
   justify-content: space-between;
   align-items: baseline;
   gap: 0.7rem;
+  flex-wrap: wrap;
 }
 
 .panel-head h3 {
   font-size: 1.05rem;
+}
+
+.panel-head .mono {
+  overflow-wrap: anywhere;
 }
 
 .list-wrap {
@@ -282,6 +289,7 @@ input:focus {
   gap: 0.65rem;
   align-content: start;
   padding-right: 0.1rem;
+  min-height: 0;
 }
 
 .list-item {
@@ -309,6 +317,19 @@ input:focus {
   gap: 0.7rem;
 }
 
+.projects-page .list-wrap {
+  gap: 0.75rem;
+}
+
+.panel-title-group {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.panel-subtitle {
+  font-size: 0.82rem;
+}
+
 .project-card-head {
   display: flex;
   justify-content: space-between;
@@ -321,6 +342,18 @@ input:focus {
   gap: 0.35rem;
 }
 
+.project-card-footer {
+  padding-top: 0.4rem;
+  border-top: 1px solid #222;
+}
+
+.project-card-cta {
+  color: #d8d8d8;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 .project-github {
   overflow-wrap: anywhere;
 }
@@ -328,11 +361,13 @@ input:focus {
 .item-title {
   font-weight: 600;
   color: #f2f2f2;
+  overflow-wrap: anywhere;
 }
 
 .item-pill {
   font-size: 0.76rem;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .preview-link {
@@ -348,6 +383,19 @@ input:focus {
   color: #b3cfff;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.projects-page .project-card {
+  padding: 0.85rem;
+  background: linear-gradient(165deg, #171717, #111);
+}
+
+.projects-page .project-card:hover {
+  border-color: #434343;
+}
+
+.projects-page .create-project-panel .form-grid {
+  gap: 0.95rem;
 }
 
 .stats-grid {
@@ -425,6 +473,11 @@ input:focus {
   margin-bottom: 0.35rem;
 }
 
+.log-line span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .reveal {
   animation: reveal-up 460ms ease both;
 }
@@ -463,6 +516,7 @@ input:focus {
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 @keyframes reveal-up {
@@ -504,14 +558,98 @@ input:focus {
 
   .topbar-actions {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
+  }
+
+  .topbar-actions .btn,
+  .topbar-actions .user-chip {
+    width: 100%;
+  }
+
+  .panel-head {
+    align-items: flex-start;
+  }
+
+  .panel-head .btn {
+    width: 100%;
+  }
+
+  .project-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .project-card-info {
+    gap: 0.5rem;
+  }
+
+  .projects-page {
+    gap: 0.75rem;
+  }
+
+  .projects-page .panel {
+    padding: 0.85rem;
+    gap: 0.75rem;
+  }
+
+  .projects-page .projects-list-panel {
+    background: linear-gradient(180deg, #101010, #0d0d0d);
+  }
+
+  .projects-page .create-project-panel {
+    background: linear-gradient(180deg, #101010, #0f0f0f);
+  }
+
+  .projects-page .panel-title-group h3 {
+    font-size: 1rem;
+  }
+
+  .projects-page .panel-subtitle {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .projects-page .project-card {
+    border-radius: 12px;
+    padding: 0.8rem;
+    gap: 0.6rem;
+  }
+
+  .projects-page .item-title {
+    font-size: 0.95rem;
+  }
+
+  .projects-page .item-pill {
+    font-size: 0.72rem;
+  }
+
+  .projects-page .project-card-cta {
+    font-size: 0.7rem;
+  }
+
+  .projects-page .create-project-panel .btn-primary {
+    width: 100%;
+    min-height: 42px;
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
   }
 
+  .terminal {
+    max-height: 220px;
+  }
+
   .log-line {
     grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
   }
 }
