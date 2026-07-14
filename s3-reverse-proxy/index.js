@@ -3,7 +3,7 @@ import express from "express";
 import path from "path";
 import { prisma } from "../api-server/utils/prisma.js";
 
-const PORT = 6001;
+const PORT = 7002;
 const BASE_PATH = "https://s3.ap-south-1.amazonaws.com/vercel.output/__outputs";
 const app = express();
 
