@@ -297,11 +297,6 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick }) {
             <section className="panel">
                 <div className="panel-head">
                     <h3>Deployment Details & Logs</h3>
-                    {selectedDeployment && (
-                        <span className="muted mono">
-                            {selectedDeployment.id}
-                        </span>
-                    )}
                 </div>
 
                 {!selectedDeployment && (

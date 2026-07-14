@@ -22,7 +22,7 @@ function CreateDeploymentModal({
                     pushed to your GitHub repository.
                 </p>
                 <label>
-                    package.json folder path (optional)
+                    package.json folder path (provide if not in root folder)
                     <input
                         value={pathValue}
                         onChange={(event) => setPathValue(event.target.value)}

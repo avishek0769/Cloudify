@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import AuthView from "./components/AuthView";
-import TopBar from "./components/TopBar";
 import { callApi } from "./lib/api";
 import DeploymentsPage from "./pages/DeploymentsPage";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -203,8 +202,6 @@ function AppShell() {
 
     return (
         <main className="screen shell">
-            <TopBar user={user} onRefresh={refreshAll} />
-
             <Routes>
                 <Route path="/" element={<Navigate to="/projects" replace />} />
                 <Route
