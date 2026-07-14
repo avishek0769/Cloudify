@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import AuthView from "./components/AuthView";
 import { callApi } from "./lib/api";
 import DeploymentsPage from "./pages/DeploymentsPage";
 import ProjectsPage from "./pages/ProjectsPage";
+import LandingPage from "./pages/LandingPage";
 
 function AppShell() {
     const [bootLoading, setBootLoading] = useState(true);
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
     const [authMode, setAuthMode] = useState("login");
     const [authForm, setAuthForm] = useState({
         fullname: "",
@@ -32,6 +34,14 @@ function AppShell() {
     const [projectMutationLoading, setProjectMutationLoading] = useState(false);
     const [projectError, setProjectError] = useState("");
     const [refreshTick, setRefreshTick] = useState(0);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const mode = params.get("mode");
+        if (mode === "login" || mode === "register") {
+            setAuthMode(mode);
+        }
+    }, [location.search]);
 
     const loadProfile = useCallback(async () => {
         const response = await callApi("/user/profile");
@@ -186,53 +196,67 @@ function AppShell() {
         );
     }
 
-    if (!user) {
-        return (
-            <AuthView
-                authMode={authMode}
-                setAuthMode={setAuthMode}
-                authForm={authForm}
-                setAuthForm={setAuthForm}
-                authLoading={authLoading}
-                authError={authError}
-                onSubmit={handleAuthSubmit}
-            />
-        );
-    }
-
     return (
-        <main className="screen shell">
-            <Routes>
-                <Route path="/" element={<Navigate to="/projects" replace />} />
-                <Route
-                    path="/projects"
-                    element={
-                        <ProjectsPage
-                            projects={projects}
-                            projectsLoading={projectsLoading}
-                            projectForm={projectForm}
-                            setProjectForm={setProjectForm}
-                            slugState={slugState}
-                            checkSlug={checkSlug}
-                            projectMutationLoading={projectMutationLoading}
-                            projectError={projectError}
-                            handleProjectCreate={handleProjectCreate}
+        <Routes>
+            <Route path="/" element={<LandingPage user={user} setAuthMode={setAuthMode} />} />
+            <Route
+                path="/auth"
+                element={
+                    user ? (
+                        <Navigate to="/projects" replace />
+                    ) : (
+                        <AuthView
+                            authMode={authMode}
+                            setAuthMode={setAuthMode}
+                            authForm={authForm}
+                            setAuthForm={setAuthForm}
+                            authLoading={authLoading}
+                            authError={authError}
+                            onSubmit={handleAuthSubmit}
                         />
-                    }
-                />
-                <Route
-                    path="/projects/:projectId/deployments"
-                    element={
-                        <DeploymentsPage
-                            projects={projects}
-                            loadProjectById={loadProjectById}
-                            refreshTick={refreshTick}
-                        />
-                    }
-                />
-                <Route path="*" element={<Navigate to="/projects" replace />} />
-            </Routes>
-        </main>
+                    )
+                }
+            />
+            <Route
+                path="/projects"
+                element={
+                    user ? (
+                        <main className="screen shell">
+                            <ProjectsPage
+                                projects={projects}
+                                projectsLoading={projectsLoading}
+                                projectForm={projectForm}
+                                setProjectForm={setProjectForm}
+                                slugState={slugState}
+                                checkSlug={checkSlug}
+                                projectMutationLoading={projectMutationLoading}
+                                projectError={projectError}
+                                handleProjectCreate={handleProjectCreate}
+                            />
+                        </main>
+                    ) : (
+                        <Navigate to="/auth?mode=login" replace />
+                    )
+                }
+            />
+            <Route
+                path="/projects/:projectId/deployments"
+                element={
+                    user ? (
+                        <main className="screen shell">
+                            <DeploymentsPage
+                                projects={projects}
+                                loadProjectById={loadProjectById}
+                                refreshTick={refreshTick}
+                            />
+                        </main>
+                    ) : (
+                        <Navigate to="/auth?mode=login" replace />
+                    )
+                }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
     );
 }
 

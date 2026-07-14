@@ -1,10 +1,10 @@
-# Vercel Clone 🚀
+# Cloudify 
 
-Checkout the live website: [Vercel Clone](https://avishek.short.gy/docchat)
+Checkout the live website: [Cloudify](https://avishek.short.gy/cloudify)
 
 A full-stack, scalable application deployment platform inspired by Vercel. It allows users to authenticate, connect their GitHub repositories, sequence builds, and automatically deploy static assets to custom subdomains.
 
-## 🏗 Architecture
+## Architecture
 
 This project is split into four main services:
 
@@ -13,7 +13,7 @@ This project is split into four main services:
 - **`s3-reverse-proxy`**: A Node.js reverse proxy that dynamically maps subdomains (e.g., `https://my-app.vercel.avishekadhikary.tech`) to the correct S3 bucket prefix, streaming the built files back to the user.
 - **`frontend`**: A React single-page application built with Vite. It features a modern dark-themed dashboard to manage projects and track deployments in real-time.
 
-## ✨ Key Features
+## Key Features
 
 - **User Authentication**: Secure Sign up & Log in using JWT auth.
 - **Project Management**: Create projects linked to public GitHub URLs and claim custom subdomains.
@@ -30,7 +30,7 @@ This project is split into four main services:
 - **Cloud & Infra**: AWS ECS (Fargate), AWS S3, AWS ECR, Docker
 - **Package Manager**: pnpm
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js (v18+)
@@ -42,8 +42,8 @@ This project is split into four main services:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/avishek0769/Vercel_clone
-   cd Vercel_clone
+   git clone https://github.com/avishek0769/Cloudify
+   cd Cloudify
    ```
 
 2. **Environment Setup**
