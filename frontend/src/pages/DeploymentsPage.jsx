@@ -338,12 +338,12 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick }) {
                                     {selectedProject?.subdomain
                                         ? (
                                             <a
-                                                href={`https://${selectedProject.subdomain}.vercel.avishekadhikary.tech`}
+                                                href={`https://${selectedProject.subdomain}.cloudify.avishekadhikary.tech`}
                                                 target="_blank"
                                                 rel="noreferrer"
                                                 className="preview-link"
                                             >
-                                                https://{selectedProject.subdomain}.vercel.avishekadhikary.tech
+                                                https://{selectedProject.subdomain}.cloudify.avishekadhikary.tech
                                             </a>
                                         )
                                         : "-"}

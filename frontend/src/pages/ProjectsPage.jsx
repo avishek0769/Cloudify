@@ -1,7 +1,12 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isoToReadable } from "../lib/date";
+import logoImg from "../assets/logo.png";
+import CreateProjectModal from "../components/CreateProjectModal";
 
 function ProjectsPage({
+    user,
+    setUser,
     projects,
     projectsLoading,
     projectForm,
@@ -13,163 +18,169 @@ function ProjectsPage({
     handleProjectCreate,
 }) {
     const navigate = useNavigate();
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    const handleLogout = () => {
+        if (setUser) setUser(null);
+        navigate("/auth?mode=login");
+    };
 
     return (
-        <section className="page-grid projects-layout projects-page">
-            <section className="panel projects-list-panel">
-                <div className="panel-head">
-                    <div className="panel-title-group">
-                        <h3>Projects</h3>
-                        <p className="muted panel-subtitle">
-                            Tap a project card to open its deployments.
-                        </p>
-                    </div>
-                    {projectsLoading && (
-                        <span className="muted">Loading...</span>
-                    )}
-                </div>
-
-                <div className="list-wrap">
-                    {projects.length === 0 && (
-                        <p className="muted">
-                            No projects yet. Create one to continue.
-                        </p>
-                    )}
-                    {projects.map((project) => (
-                        <article
-                            key={project.id}
-                            className="list-item project-card"
-                            onClick={() =>
-                                navigate(`/projects/${project.id}/deployments`)
-                            }
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter" || event.key === " ") {
-                                    event.preventDefault();
-                                    navigate(`/projects/${project.id}/deployments`);
-                                }
-                            }}
-                            role="button"
-                            tabIndex={0}
+        <div className="projects-page-container">
+            {/* Nav Bar for branding */}
+            <header className="db-navbar">
+                <div className="db-navbar-container">
+                    <div className="db-navbar-left">
+                        <div 
+                            className="db-logo" 
+                            onClick={() => navigate("/")} 
+                            style={{ cursor: "pointer" }}
                         >
-                            <div className="project-card-head">
-                                <p className="item-title">{project.name}</p>
-                                <span className="item-pill">
-                                    {isoToReadable(project.createdAt)}
+                            <img src={logoImg} alt="Cloudify Logo" className="db-logo-img" />
+                            <span className="db-logo-text">Cloudify</span>
+                        </div>
+                        <nav className="db-nav-links">
+                            <span className="db-nav-link active">Projects</span>
+                        </nav>
+                    </div>
+                    <div className="db-navbar-right">
+                        {user && (
+                            <div className="db-user-section">
+                                <span className="db-user-chip mono">
+                                    {user.fullname || user.email}
                                 </span>
+                                <button 
+                                    className="db-logout-btn btn btn-ghost" 
+                                    onClick={handleLogout}
+                                >
+                                    Logout
+                                </button>
                             </div>
-
-                            <div className="project-card-info">
-                                <p className="muted mono">
-                                    Subdomain: {project.subdomain}
-                                </p>
-                                <p className="muted mono project-github">
-                                    Repo: {project.githubUrl}
-                                </p>
-                                <div>
-                                    <a
-                                        href={`https://${project.subdomain}.vercel.avishekadhikary.tech`}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="preview-link mono"
-                                        onClick={(event) => event.stopPropagation()}
-                                    >
-                                        https://{project.subdomain}.vercel.avishekadhikary.tech
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div className="project-card-footer">
-                                <span className="project-card-cta mono">
-                                    Open deployments
-                                </span>
-                            </div>
-                        </article>
-                    ))}
-                </div>
-            </section>
-
-            <section className="panel create-project-panel">
-                <div className="panel-head">
-                    <div className="panel-title-group">
-                        <h3>Create Project</h3>
-                        <p className="muted panel-subtitle">
-                            Add your repo and reserve a unique subdomain.
-                        </p>
+                        )}
                     </div>
                 </div>
-                <form
-                    className="form-grid compact"
-                    onSubmit={handleProjectCreate}
-                >
-                    <label>
-                        Project name
-                        <input
-                            value={projectForm.name}
-                            onChange={(event) =>
-                                setProjectForm((previous) => ({
-                                    ...previous,
-                                    name: event.target.value,
-                                }))
-                            }
-                            placeholder="my-app"
-                            required
-                        />
-                    </label>
-                    <label>
-                        Subdomain slug
-                        <input
-                            value={projectForm.slug}
-                            onChange={(event) =>
-                                setProjectForm((previous) => ({
-                                    ...previous,
-                                    slug: event.target.value,
-                                }))
-                            }
-                            onBlur={checkSlug}
-                            placeholder="my-app"
-                            required
-                        />
-                    </label>
-                    <label>
-                        GitHub URL
-                        <input
-                            value={projectForm.githubUrl}
-                            onChange={(event) =>
-                                setProjectForm((previous) => ({
-                                    ...previous,
-                                    githubUrl: event.target.value,
-                                }))
-                            }
-                            placeholder="https://github.com/user/repo"
-                            required
-                        />
-                    </label>
+            </header>
 
-                    {slugState.checking && (
-                        <p className="muted">Checking slug...</p>
-                    )}
-                    {slugState.available === true && (
-                        <p className="success-text">Slug is available.</p>
-                    )}
-                    {slugState.available === false && (
-                        <p className="error-text">Slug is not available.</p>
-                    )}
-                    {projectError && (
-                        <p className="error-text">{projectError}</p>
-                    )}
-
-                    <button
-                        className="btn btn-primary"
-                        type="submit"
-                        disabled={projectMutationLoading}
+            {/* Main Content */}
+            <main className="db-main-content screen shell">
+                <div className="db-page-header">
+                    <div className="db-title-group">
+                        <h1 className="db-page-title">Projects</h1>
+                        <p className="db-page-subtitle muted">
+                            Create, configure, and monitor your deployed frontend applications.
+                        </p>
+                    </div>
+                    <button 
+                        className="btn btn-primary db-create-btn"
+                        onClick={() => setIsCreateModalOpen(true)}
                     >
-                        {projectMutationLoading
-                            ? "Creating..."
-                            : "Create Project"}
+                        + New Project
                     </button>
-                </form>
-            </section>
-        </section>
+                </div>
+
+                {projectsLoading && (
+                    <div className="db-loading-state">
+                        <span className="muted">Retrieving your projects...</span>
+                    </div>
+                )}
+
+                {!projectsLoading && projects.length === 0 && (
+                    <div className="db-empty-state">
+                        <p className="muted">No projects found. Deploy your first application to get started.</p>
+                        <button 
+                            className="btn btn-primary"
+                            onClick={() => setIsCreateModalOpen(true)}
+                            style={{ marginTop: "1rem" }}
+                        >
+                            Create a Project
+                        </button>
+                    </div>
+                )}
+
+                {!projectsLoading && projects.length > 0 && (
+                    <div className="db-projects-grid">
+                        {projects.map((project) => (
+                            <article
+                                key={project.id}
+                                className="db-project-card"
+                                onClick={() => navigate(`/projects/${project.id}/deployments`)}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter" || event.key === " ") {
+                                        event.preventDefault();
+                                        navigate(`/projects/${project.id}/deployments`);
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                            >
+                                <div className="db-project-card-header">
+                                    <h3 className="db-project-name">{project.name}</h3>
+                                    <span className="db-project-date mono">
+                                        {isoToReadable(project.createdAt)}
+                                    </span>
+                                </div>
+
+                                <div className="db-project-card-body">
+                                    <div className="db-project-domain-item">
+                                        <span className="db-meta-label mono">DEPLOYED SUBDOMAIN</span>
+                                        <a
+                                            href={`https://${project.subdomain}.cloudify.avishekadhikary.tech`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="db-project-link mono"
+                                            onClick={(event) => event.stopPropagation()}
+                                        >
+                                            https://{project.subdomain}.cloudify.avishekadhikary.tech
+                                        </a>
+                                    </div>
+
+                                    {project.customDomain && (
+                                        <div className="db-project-domain-item">
+                                            <span className="db-meta-label mono">CUSTOM DOMAIN</span>
+                                            <a
+                                                href={`https://${project.customDomain}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="db-project-link custom-domain mono"
+                                                onClick={(event) => event.stopPropagation()}
+                                            >
+                                                https://{project.customDomain}
+                                            </a>
+                                        </div>
+                                    )}
+
+                                    <div className="db-project-repo-item">
+                                        <span className="db-meta-label mono">REPOSITORY</span>
+                                        <span className="db-project-repo-text mono muted">
+                                            {project.githubUrl}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="db-project-card-footer">
+                                    <span className="db-card-cta mono">
+                                        View Deployments →
+                                    </span>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                )}
+            </main>
+
+            {/* Create Project Modal */}
+            <CreateProjectModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                projectForm={projectForm}
+                setProjectForm={setProjectForm}
+                slugState={slugState}
+                checkSlug={checkSlug}
+                projectMutationLoading={projectMutationLoading}
+                projectError={projectError}
+                handleProjectCreate={handleProjectCreate}
+            />
+        </div>
     );
 }
 

@@ -26,6 +26,8 @@ function AppShell() {
         name: "",
         slug: "",
         githubUrl: "",
+        customDomain: "",
+        useCustomDomain: false,
     });
     const [slugState, setSlugState] = useState({
         checking: false,
@@ -154,7 +156,7 @@ function AppShell() {
 
     const handleProjectCreate = async (event) => {
         event.preventDefault();
-        if (!user?.id) return;
+        if (!user?.id) return false;
 
         setProjectMutationLoading(true);
         setProjectError("");
@@ -168,11 +170,15 @@ function AppShell() {
                 name: "",
                 slug: "",
                 githubUrl: "",
+                customDomain: "",
+                useCustomDomain: false,
             });
             setSlugState({ checking: false, available: null });
             await loadProjects(user.id);
+            return true;
         } catch (error) {
             setProjectError(error.message || "Could not create project");
+            return false;
         } finally {
             setProjectMutationLoading(false);
         }
@@ -221,19 +227,19 @@ function AppShell() {
                 path="/projects"
                 element={
                     user ? (
-                        <main className="screen shell">
-                            <ProjectsPage
-                                projects={projects}
-                                projectsLoading={projectsLoading}
-                                projectForm={projectForm}
-                                setProjectForm={setProjectForm}
-                                slugState={slugState}
-                                checkSlug={checkSlug}
-                                projectMutationLoading={projectMutationLoading}
-                                projectError={projectError}
-                                handleProjectCreate={handleProjectCreate}
-                            />
-                        </main>
+                        <ProjectsPage
+                            user={user}
+                            setUser={setUser}
+                            projects={projects}
+                            projectsLoading={projectsLoading}
+                            projectForm={projectForm}
+                            setProjectForm={setProjectForm}
+                            slugState={slugState}
+                            checkSlug={checkSlug}
+                            projectMutationLoading={projectMutationLoading}
+                            projectError={projectError}
+                            handleProjectCreate={handleProjectCreate}
+                        />
                     ) : (
                         <Navigate to="/auth?mode=login" replace />
                     )

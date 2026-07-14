@@ -19,7 +19,7 @@ const DEPLOYMENT_ID = process.env.DEPLOYMENT_ID;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 const PATH_TO_PACKAGE_JSON = process.env.PATH_ || "";
 // const API_SERVER_HOST = "https://r51klsgs-6000.inc1.devtunnels.ms";
-const API_SERVER_HOST = "https://vercel.avishekadhikary.tech";
+const API_SERVER_HOST = "https://cloudify.avishekadhikary.tech";
 
 let logsBuffer = [];
 let timer;
