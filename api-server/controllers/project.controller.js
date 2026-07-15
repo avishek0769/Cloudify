@@ -1,6 +1,49 @@
 import { prisma } from "../utils/prisma.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import dns from "dns/promises"
+import dns from "dns/promises";
+import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+
+const s3Client = new S3Client({
+    region: "ap-south-1",
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_ACCESS_KEY_SECRET,
+    },
+});
+
+const deleteS3Folder = async (projectId) => {
+    const bucketName = process.env.S3_BUCKET || "vercel.output";
+    const prefix = `__outputs/${projectId}/`;
+
+    let continuationToken = undefined;
+
+    do {
+        const listCommand = new ListObjectsV2Command({
+            Bucket: bucketName,
+            Prefix: prefix,
+            ContinuationToken: continuationToken,
+        });
+
+        const listResponse = await s3Client.send(listCommand);
+        const contents = listResponse.Contents || [];
+
+        if (contents.length > 0) {
+            const objectsToDelete = contents.map(item => ({ Key: item.Key }));
+
+            const deleteCommand = new DeleteObjectsCommand({
+                Bucket: bucketName,
+                Delete: {
+                    Objects: objectsToDelete,
+                    Quiet: true,
+                },
+            });
+
+            await s3Client.send(deleteCommand);
+        }
+
+        continuationToken = listResponse.NextContinuationToken;
+    } while (continuationToken);
+};
 
 const createProject = asyncHandler(async (req, res) => {
     const { name, slug, githubUrl, customDomain } = req.body;
@@ -130,6 +173,9 @@ const updateProjectCustomDomain = asyncHandler(async (req, res) => {
 
 const deleteProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
+
+    // Purge build assets stored in AWS S3
+    await deleteS3Folder(projectId);
 
     const deployments = await prisma.deployment.findMany({
         where: { projectId },
