@@ -7,8 +7,10 @@ RUN apt-get install -y curl
 RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - 
 RUN apt-get install -y nodejs
 RUN apt-get install git -y
+RUN npm install -g pnpm yarn bun
 
 WORKDIR /home/app
+COPY builder builder
 COPY script.js script.js
 COPY main.sh main.sh
 COPY package*.json .
