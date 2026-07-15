@@ -159,9 +159,15 @@ function AppShell() {
         setProjectError("");
 
         try {
+            const payload = {
+                name: projectForm.name,
+                slug: projectForm.slug,
+                githubUrl: projectForm.githubUrl,
+                customDomain: projectForm.useCustomDomain && projectForm.customDomain ? projectForm.customDomain : null,
+            };
             await callApi("/project/create", {
                 method: "POST",
-                body: JSON.stringify(projectForm),
+                body: JSON.stringify(payload),
             });
             setProjectForm({
                 name: "",

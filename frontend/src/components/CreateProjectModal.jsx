@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { callApi } from "../lib/api";
 
 function CreateProjectModal({
     isOpen,
@@ -29,15 +30,29 @@ function CreateProjectModal({
         }
     };
 
-    const handleVerifyDns = () => {
+    const handleVerifyDns = async () => {
+        if (!projectForm.customDomain) return;
         setVerifyingDns(true);
         setDnsVerificationStatus(null);
-        
-        // Simulate a sleek DNS resolution check with a brief loading state
-        setTimeout(() => {
-            setDnsVerificationStatus("success");
+        try {
+            const response = await callApi("/project/verify-dns", {
+                method: "POST",
+                body: JSON.stringify({
+                    customDomain: projectForm.customDomain,
+                    subdomain: projectForm.slug,
+                }),
+            });
+            if (response && response.verified) {
+                setDnsVerificationStatus("success");
+            } else {
+                setDnsVerificationStatus("error");
+            }
+        } catch (error) {
+            console.error("DNS verification failed:", error);
+            setDnsVerificationStatus("error");
+        } finally {
             setVerifyingDns(false);
-        }, 1000);
+        }
     };
 
     const handleCopyTarget = () => {
@@ -105,6 +120,12 @@ function CreateProjectModal({
                         <p className="error-text mono-status">✗ Subdomain slug is already taken.</p>
                     )}
 
+                    {projectForm.useCustomDomain && (
+                        <p className="slug-explanation-notice muted" style={{ fontSize: "0.78rem", marginTop: "-6px", marginBottom: "12px", lineHeight: "1.4", color: "var(--muted)" }}>
+                            A subdomain slug is required. Even when using a custom domain, Cloudify uses this internal subdomain address to host your files and route incoming traffic from your custom domain.
+                        </p>
+                    )}
+
                     <label>
                         GitHub URL
                         <input
@@ -143,6 +164,20 @@ function CreateProjectModal({
                     {/* Unhidden fields when custom domain is toggled on */}
                     {projectForm.useCustomDomain && (
                         <div className="custom-domain-setup reveal">
+                            <label>
+                                Your Custom Domain
+                                <input
+                                    value={projectForm.customDomain}
+                                    onChange={(event) =>
+                                        setProjectForm((previous) => ({
+                                            ...previous,
+                                            customDomain: event.target.value,
+                                        }))
+                                    }
+                                    placeholder="yourdomain.com"
+                                    required
+                                />
+                            </label>
                             <div className="dns-instructions-card">
                                 <span className="mono-eyebrow">DNS CONFIGURATION REQUIRED</span>
                                 <p className="instruction-desc muted">
@@ -197,7 +232,17 @@ function CreateProjectModal({
                                             <span className="success-text mono">✓ DNS Configured Correctly</span>
                                         </div>
                                     )}
+
+                                    {dnsVerificationStatus === "error" && (
+                                        <div className="dns-status-badge error reveal">
+                                            <span className="error-text mono">✗ DNS Not Propagated Yet</span>
+                                        </div>
+                                    )}
                                 </div>
+
+                                <p className="dns-notice muted" style={{ fontSize: "0.74rem", marginTop: "12px", lineHeight: "1.4", color: "var(--muted)", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "10px" }}>
+                                    <strong>Note:</strong> DNS propagation can take time. You can safely proceed to create the project now even if it is not verified; you can always fix and verify your domain records later.
+                                </p>
                             </div>
                         </div>
                     )}

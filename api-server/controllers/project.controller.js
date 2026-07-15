@@ -1,8 +1,9 @@
 import { prisma } from "../utils/prisma.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import dns from "dns/promises"
 
 const createProject = asyncHandler(async (req, res) => {
-    const { name, slug, githubUrl } = req.body;
+    const { name, slug, githubUrl, customDomain } = req.body;
 
     const project = await prisma.project.findUnique({
         where: {
@@ -25,11 +26,44 @@ const createProject = asyncHandler(async (req, res) => {
             subdomain: slug,
             githubUrl,
             userId: req.user.id,
+            customDomain
         }
     });
 
     return res.json({ status: "success", data: { newProject } });
 });
+
+const verifyDns = asyncHandler(async (req, res) => {
+    const { customDomain, subdomain } = req.body;
+
+    if(!customDomain || !subdomain) {
+        return res.status(400)
+            .json({
+                status: "error",
+                message: "Custom domain and Subdomain are required fields",
+            });
+    }
+    
+    const project = await prisma.project.findUnique({
+        where: { customDomain }
+    });
+
+    if (project) {
+        return res
+            .status(400)
+            .json({
+                status: "error",
+                message: "This domain is already being used",
+            });
+    }
+
+    const records = await dns.resolveCname(customDomain)
+    const verified = records.includes(`${subdomain}.${process.env.BASE_DOMAIN}`);
+
+    return res
+        .status(200)
+        .json({ verified })
+})
 
 const projectSlugAvailable = asyncHandler(async (req, res) => {
     const { slug } = req.params;
@@ -72,4 +106,5 @@ export {
     projectSlugAvailable,
     getProjectsByUser,
     getProjectById,
+    verifyDns
 };
