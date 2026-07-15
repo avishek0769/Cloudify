@@ -7,7 +7,6 @@ import ProjectsPage from "./pages/ProjectsPage";
 import LandingPage from "./pages/LandingPage";
 
 function AppShell() {
-    const [bootLoading, setBootLoading] = useState(true);
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
@@ -87,8 +86,6 @@ function AppShell() {
                 }
             } catch {
                 if (mounted) setUser(null);
-            } finally {
-                if (mounted) setBootLoading(false);
             }
         };
 
@@ -189,18 +186,6 @@ function AppShell() {
         await loadProjects(user.id);
         setRefreshTick((previous) => previous + 1);
     };
-
-    if (bootLoading) {
-        return (
-            <main className="screen shell loading-shell">
-                <div className="aurora aurora-left" />
-                <div className="aurora aurora-right" />
-                <p className="loading-text">
-                    Warming your deployment command center...
-                </p>
-            </main>
-        );
-    }
 
     return (
         <Routes>
