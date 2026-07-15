@@ -32,6 +32,9 @@ function DeploymentsPage({ user, setUser, projects, loadProjectById, refreshTick
     const [dnsVerificationStatus, setDnsVerificationStatus] = useState(null);
 
     const [deletingProject, setDeletingProject] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteConfirmName, setDeleteConfirmName] = useState("");
+    const [deleteError, setDeleteError] = useState("");
 
     const selectedProject = useMemo(
         () => projects.find((project) => project.id === projectId) || null,
@@ -306,20 +309,18 @@ function DeploymentsPage({ user, setUser, projects, loadProjectById, refreshTick
     };
 
     const handleDeleteProject = async () => {
-        const firstConfirm = confirm("WARNING: Are you sure you want to permanently delete this project? All associated deployments and logs will be permanently deleted.");
-        if (!firstConfirm) return;
-
-        const secondConfirm = confirm("Are you absolutely sure you want to proceed? This action cannot be undone.");
-        if (!secondConfirm) return;
+        if (deleteConfirmName !== selectedProject?.name) return;
 
         setDeletingProject(true);
+        setDeleteError("");
         try {
             await callApi(`/project/${projectId}`, {
                 method: "DELETE"
             });
+            setDeleteModalOpen(false);
             navigate("/projects", { replace: true });
         } catch (err) {
-            alert(err.message || "Could not delete project");
+            setDeleteError(err.message || "Could not delete project");
         } finally {
             setDeletingProject(false);
         }
@@ -518,7 +519,11 @@ function DeploymentsPage({ user, setUser, projects, loadProjectById, refreshTick
                             <button
                                 type="button"
                                 className="btn"
-                                onClick={handleDeleteProject}
+                                onClick={() => {
+                                    setDeleteConfirmName("");
+                                    setDeleteError("");
+                                    setDeleteModalOpen(true);
+                                }}
                                 disabled={deletingProject}
                                 style={{
                                     width: "100%",
@@ -794,6 +799,71 @@ function DeploymentsPage({ user, setUser, projects, loadProjectById, refreshTick
                 deploying={deploying}
                 deployError={deployError}
             />
+
+            {deleteModalOpen && (
+                <div className="modal-backdrop" role="presentation" onClick={() => setDeleteModalOpen(false)}>
+                    <div
+                        className="modal-card"
+                        role="dialog"
+                        onClick={(event) => event.stopPropagation()}
+                        style={{ maxWidth: "480px" }}
+                    >
+                        <div className="modal-header">
+                            <h3 style={{ color: "var(--danger)" }}>Delete Project</h3>
+                        </div>
+                        <div className="modal-body" style={{ marginTop: "12px" }}>
+                            <p style={{ color: "var(--text)", fontSize: "0.95rem", lineHeight: "1.5", marginBottom: "12px" }}>
+                                This action <strong style={{ color: "var(--danger)" }}>cannot be undone</strong>. This will permanently delete the project <strong>{selectedProject?.name}</strong>, all its associated deployments, custom domains, and build logs.
+                            </p>
+                            
+                            <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "16px" }}>
+                                Please type <span style={{ fontFamily: "var(--mono)", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "4px", color: "#ff6b6b" }}>{selectedProject?.name}</span> to confirm.
+                            </p>
+
+                            <input
+                                type="text"
+                                className="input-field"
+                                value={deleteConfirmName}
+                                onChange={(e) => setDeleteConfirmName(e.target.value)}
+                                placeholder={selectedProject?.name}
+                                style={{ width: "100%", marginBottom: "12px" }}
+                            />
+
+                            {deleteError && (
+                                <p className="error-text" style={{ color: "var(--danger)", fontSize: "0.85rem", marginBottom: "12px" }}>
+                                    {deleteError}
+                                </p>
+                            )}
+
+                            <div className="modal-actions" style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "16px" }}>
+                                <button
+                                    type="button"
+                                    className="btn btn-ghost"
+                                    onClick={() => setDeleteModalOpen(false)}
+                                    disabled={deletingProject}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn animate-pulse"
+                                    onClick={handleDeleteProject}
+                                    disabled={deletingProject || deleteConfirmName !== selectedProject?.name}
+                                    style={{
+                                        background: "var(--danger)",
+                                        color: "white",
+                                        border: "none",
+                                        opacity: (deletingProject || deleteConfirmName !== selectedProject?.name) ? 0.5 : 1,
+                                        cursor: (deletingProject || deleteConfirmName !== selectedProject?.name) ? "not-allowed" : "pointer"
+                                    }}
+                                >
+                                    {deletingProject ? "Deleting..." : "Permanently Delete"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
