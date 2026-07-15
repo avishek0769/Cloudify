@@ -11,13 +11,19 @@ const proxy = httpProxy.createProxy({});
 
 app.use(async (req, res, next) => {
     const hostname = req.hostname;
-    const subdomain = hostname.split(".")[0];
-
-    const project = await prisma.project.findUnique({
-        where: {
-            subdomain: subdomain,
-        },
-    });
+    let project = null;
+    
+    if(hostname.includes("cloudify.avishekadhikary.tech")) {
+        project = await prisma.project.findUnique({
+            where: { customDomain: hostname },
+        });
+    }
+    else {
+        const subdomain = hostname.split(".")[0];
+        project = await prisma.project.findUnique({
+            where: { subdomain },
+        });
+    }
 
     if (!project) {
         return res.status(404).json({ error: "Project not found" });
