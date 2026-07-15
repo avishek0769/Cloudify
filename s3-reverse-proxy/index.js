@@ -14,14 +14,14 @@ app.use(async (req, res, next) => {
     let project = null;
     
     if(hostname.includes("cloudify.avishekadhikary.tech")) {
-        project = await prisma.project.findUnique({
-            where: { customDomain: hostname },
-        });
-    }
-    else {
         const subdomain = hostname.split(".")[0];
         project = await prisma.project.findUnique({
             where: { subdomain },
+        });
+    }
+    else {
+        project = await prisma.project.findUnique({
+            where: { customDomain: hostname },
         });
     }
 
