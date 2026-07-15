@@ -240,13 +240,13 @@ function AppShell() {
                 path="/projects/:projectId/deployments"
                 element={
                     user ? (
-                        <main className="screen shell">
-                            <DeploymentsPage
-                                projects={projects}
-                                loadProjectById={loadProjectById}
-                                refreshTick={refreshTick}
-                            />
-                        </main>
+                        <DeploymentsPage
+                            user={user}
+                            setUser={setUser}
+                            projects={projects}
+                            loadProjectById={loadProjectById}
+                            refreshTick={refreshTick}
+                        />
                     ) : (
                         <Navigate to="/auth?mode=login" replace />
                     )

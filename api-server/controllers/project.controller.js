@@ -101,10 +101,63 @@ const getProjectById = asyncHandler(async (req, res) => {
     return res.json({ status: "success", data: { project } });
 });
 
+const updateProjectCustomDomain = asyncHandler(async (req, res) => {
+    const { projectId } = req.params;
+    const { customDomain } = req.body;
+
+    if (customDomain) {
+        const existing = await prisma.project.findFirst({
+            where: {
+                customDomain,
+                id: { not: projectId }
+            }
+        });
+        if (existing) {
+            return res.status(400).json({
+                status: "error",
+                message: "This domain is already in use by another project"
+            });
+        }
+    }
+
+    const updatedProject = await prisma.project.update({
+        where: { id: projectId },
+        data: { customDomain: customDomain || null }
+    });
+
+    return res.json({ status: "success", data: { project: updatedProject } });
+});
+
+const deleteProject = asyncHandler(async (req, res) => {
+    const { projectId } = req.params;
+
+    const deployments = await prisma.deployment.findMany({
+        where: { projectId },
+        select: { id: true }
+    });
+    const deploymentIds = deployments.map(d => d.id);
+
+    await prisma.log_Events.deleteMany({
+        where: { deploymentId: { in: deploymentIds } }
+    });
+
+    await prisma.deployment.deleteMany({
+        where: { projectId }
+    });
+
+    await prisma.project.delete({
+        where: { id: projectId }
+    });
+
+    return res.json({ status: "success", message: "Project deleted successfully" });
+});
+
 export {
     createProject,
     projectSlugAvailable,
     getProjectsByUser,
     getProjectById,
-    verifyDns
+    verifyDns,
+    updateProjectCustomDomain,
+    deleteProject
 };
