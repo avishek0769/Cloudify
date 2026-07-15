@@ -60,6 +60,8 @@ const deployProject = asyncHandler(async (req, res) => {
                         { name: "PATH_", value: deployment.pathToPackageJson || "" },
                         { name: "DEPLOYMENT_ID", value: deployment.id || "" },
                         { name: "WEBHOOK_SECRET", value: process.env.WEBHOOK_SECRET || "" },
+                        { name: "AWS_ACCESS_KEY_ID", value: process.env.AWS_ACCESS_KEY_ID },
+                        { name: "AWS_ACCESS_KEY_SECRET", value: process.env.AWS_ACCESS_KEY_SECRET },
                     ],
                 },
             ],
