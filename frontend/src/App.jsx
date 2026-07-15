@@ -5,6 +5,9 @@ import { callApi } from "./lib/api";
 import DeploymentsPage from "./pages/DeploymentsPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import LandingPage from "./pages/LandingPage";
+import AboutPage from "./pages/AboutPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
 
 function AppShell() {
     const [user, setUser] = useState(null);
@@ -252,6 +255,9 @@ function AppShell() {
                     )
                 }
             />
+            <Route path="/about" element={<AboutPage user={user} setAuthMode={setAuthMode} />} />
+            <Route path="/privacy" element={<PrivacyPage user={user} setAuthMode={setAuthMode} />} />
+            <Route path="/terms" element={<TermsPage user={user} setAuthMode={setAuthMode} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );

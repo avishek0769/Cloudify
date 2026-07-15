@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import reactIcon from "../assets/react-icon.webp";
-import nextjsIcon from "../assets/nextjs-icon.png";
+// import nextjsIcon from "../assets/nextjs-icon.png";
+import svelteIcon from "../assets/svelte-icon.webp";
 import vueIcon from "../assets/vue-icon.png";
 import viteIcon from "../assets/vite-icon.webp";
 import "../LandingPage.css";
@@ -101,10 +102,10 @@ export default function LandingPage({ user, setAuthMode }) {
                             <img src={reactIcon} alt="React" />
                             <span>React</span>
                         </div>
-                        <div className="lp-logo-item">
+                        {/* <div className="lp-logo-item">
                             <img src={nextjsIcon} alt="Next.js" />
                             <span>Next.js</span>
-                        </div>
+                        </div> */}
                         <div className="lp-logo-item">
                             <img src={vueIcon} alt="Vue" />
                             <span>Vue</span>
@@ -112,6 +113,10 @@ export default function LandingPage({ user, setAuthMode }) {
                         <div className="lp-logo-item">
                             <img src={viteIcon} alt="Vite" />
                             <span>Vite</span>
+                        </div>
+                        <div className="lp-logo-item">
+                            <img src={svelteIcon} alt="Vite" />
+                            <span>Svelte</span>
                         </div>
                     </div>
                 </div>
@@ -321,16 +326,16 @@ export default function LandingPage({ user, setAuthMode }) {
                             <h4>Resources</h4>
                             <ul>
                                 <li><a href="https://github.com/avishek0769/Cloudify" target="_blank" rel="noreferrer">GitHub</a></li>
-                                <li><a href="#docs">Documentation</a></li>
-                                <li><a href="#status">System Status</a></li>
+                                {/* <li><a href="#docs">Documentation</a></li> */}
+                                {/* <li><a href="#status">System Status</a></li> */}
                             </ul>
                         </div>
                         <div className="lp-footer-col">
                             <h4>Company</h4>
                             <ul>
-                                <li><a href="#about">About Us</a></li>
-                                <li><a href="#privacy">Privacy Policy</a></li>
-                                <li><a href="#terms">Terms of Service</a></li>
+                                <li><Link to="/about">About Us</Link></li>
+                                <li><Link to="/privacy">Privacy Policy</Link></li>
+                                <li><Link to="/terms">Terms of Service</Link></li>
                             </ul>
                         </div>
                     </div>
@@ -339,8 +344,8 @@ export default function LandingPage({ user, setAuthMode }) {
                             © {new Date().getFullYear()} Cloudify. All rights reserved.
                         </span>
                         <span className="lp-body-sm" style={{ display: "flex", gap: "16px" }}>
-                            <a href="#terms" style={{ color: "var(--lp-mute)", textDecoration: "none" }}>Terms</a>
-                            <a href="#privacy" style={{ color: "var(--lp-mute)", textDecoration: "none" }}>Privacy</a>
+                            <Link to="/terms" style={{ color: "var(--lp-mute)", textDecoration: "none" }}>Terms</Link>
+                            <Link to="/privacy" style={{ color: "var(--lp-mute)", textDecoration: "none" }}>Privacy</Link>
                         </span>
                     </div>
                 </div>
