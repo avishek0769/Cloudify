@@ -1,7 +1,14 @@
 import { prisma } from "../utils/prisma.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import dns from "dns/promises";
+import fs from "fs/promises";
 import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+const NGINX_CONF_DIR = "/etc/nginx/conf.d/custom-domains";
+const UPSTREAM = "cloudify_s3_reverse_proxy";
 
 const s3Client = new S3Client({
     region: "ap-south-1",
@@ -103,6 +110,10 @@ const verifyDns = asyncHandler(async (req, res) => {
     const records = await dns.resolveCname(customDomain)
     const verified = records.includes(`${subdomain}.${process.env.BASE_DOMAIN}`);
 
+    if(verified) {
+        await generateSSL(project.customDomain);
+    }
+
     return res
         .status(200)
         .json({ verified })
@@ -174,7 +185,6 @@ const updateProjectCustomDomain = asyncHandler(async (req, res) => {
 const deleteProject = asyncHandler(async (req, res) => {
     const { projectId } = req.params;
 
-    // Purge build assets stored in AWS S3
     await deleteS3Folder(projectId);
 
     const deployments = await prisma.deployment.findMany({
@@ -207,3 +217,113 @@ export {
     updateProjectCustomDomain,
     deleteProject
 };
+
+async function createNginxConfig(domain) {
+    const confPath = `${NGINX_CONF_DIR}/${domain}.conf`;
+
+    const config = `
+server {
+    listen 80;
+    server_name ${domain};
+
+    location / {
+        proxy_pass http://${UPSTREAM};
+
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+`;
+
+    await fs.writeFile(confPath, config);
+}
+
+async function generateSSL(domain) {
+    try {
+        console.log(`Generating nginx config for ${domain}`);
+
+        await createNginxConfig(domain);
+
+        await execAsync("sudo nginx -t");
+        await execAsync("sudo systemctl reload nginx");
+
+        console.log(`Issuing SSL certificate for ${domain}`);
+
+        await execAsync(
+            `sudo certbot --nginx \
+            -d ${domain} \
+            --non-interactive \
+            --agree-tos \
+            --register-unsafely-without-email \
+            --redirect`
+        );
+
+        await execAsync("sudo systemctl reload nginx");
+
+        await prisma.project.update({
+            where: {
+                customDomain: domain,
+            },
+            data: {
+                isVerified: true,
+            },
+        });
+
+        console.log(`SSL generated successfully for ${domain}`);
+    } catch (err) {
+        console.error(`Failed to generate SSL for ${domain}`);
+
+        console.error(err.stderr || err.stdout || err.message);
+
+        // Remove broken nginx config if something failed
+        try {
+            await fs.unlink(`${NGINX_CONF_DIR}/${domain}.conf`);
+            await execAsync("sudo nginx -t");
+            await execAsync("sudo systemctl reload nginx");
+        } catch {}
+
+        throw err;
+    }
+}
+
+setInterval(async () => {
+    const projects = await prisma.project.findMany({
+        where: {
+            isVerified: false,
+            customDomain: {
+                not: null,
+            },
+        },
+    });
+
+    for (const project of projects) {
+        try {
+            console.log(`Checking ${project.customDomain}`);
+
+            const records = await dns.resolveCname(project.customDomain);
+
+            const verified = records.includes(
+                `${project.subdomain}.${process.env.BASE_DOMAIN}`
+            );
+
+            if (!verified) {
+                console.log(`${project.customDomain} DNS not propagated yet`);
+                continue;
+            }
+
+            console.log(`${project.customDomain} verified`);
+
+            await generateSSL(project.customDomain);
+        } catch (err) {
+            if (err.code !== "ENODATA" && err.code !== "ENOTFOUND") {
+                console.error(err);
+            }
+        }
+    }
+}, 2 * 60 * 1000);
