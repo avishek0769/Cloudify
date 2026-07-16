@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import AuthView from "./components/AuthView";
-import { callApi } from "./lib/api";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "@clerk/react";
+import { useApi } from "./lib/api";
 import DeploymentsPage from "./pages/DeploymentsPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import LandingPage from "./pages/LandingPage";
@@ -10,17 +10,8 @@ import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 
 function AppShell() {
-    const [user, setUser] = useState(null);
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [authMode, setAuthMode] = useState("login");
-    const [authForm, setAuthForm] = useState({
-        fullname: "",
-        email: "",
-        password: "",
-    });
-    const [authLoading, setAuthLoading] = useState(false);
-    const [authError, setAuthError] = useState("");
+    const { isSignedIn, isLoaded } = useAuth();
+    const callApi = useApi();
 
     const [projects, setProjects] = useState([]);
     const [projectsLoading, setProjectsLoading] = useState(false);
@@ -39,29 +30,15 @@ function AppShell() {
     const [projectError, setProjectError] = useState("");
     const [refreshTick, setRefreshTick] = useState(0);
 
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const mode = params.get("mode");
-        if (mode === "login" || mode === "register") {
-            setAuthMode(mode);
-        }
-    }, [location.search]);
-
-    const loadProfile = useCallback(async () => {
-        const response = await callApi("/user/profile");
-        setUser(response.user);
-        return response.user;
-    }, []);
-
-    const loadProjects = useCallback(async (userId) => {
+    const loadProjects = useCallback(async () => {
         setProjectsLoading(true);
         try {
-            const response = await callApi(`/project/all/${userId}`);
+            const response = await callApi("/project/all");
             setProjects(response?.data?.projects || []);
         } finally {
             setProjectsLoading(false);
         }
-    }, []);
+    }, [callApi]);
 
     const loadProjectById = useCallback(async (projectId) => {
         try {
@@ -76,64 +53,18 @@ function AppShell() {
         } catch {
             // Ignore errors while route attempts to resolve project metadata.
         }
-    }, []);
+    }, [callApi]);
 
+    // Load projects whenever the user signs in
     useEffect(() => {
-        let mounted = true;
-
-        const bootstrap = async () => {
-            try {
-                const currentUser = await loadProfile();
-                if (mounted && currentUser?.id) {
-                    await loadProjects(currentUser.id);
-                }
-            } catch {
-                if (mounted) setUser(null);
-            }
-        };
-
-        bootstrap();
-        return () => {
-            mounted = false;
-        };
-    }, [loadProfile, loadProjects]);
-
-    const handleAuthSubmit = async (event) => {
-        event.preventDefault();
-        setAuthError("");
-        setAuthLoading(true);
-
-        try {
-            if (authMode === "register") {
-                await callApi("/user/register", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        fullname: authForm.fullname,
-                        email: authForm.email,
-                        password: authForm.password,
-                    }),
-                });
-            } else {
-                await callApi("/user/login", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        email: authForm.email,
-                        password: authForm.password,
-                    }),
-                });
-            }
-
-            const currentUser = await loadProfile();
-            if (currentUser?.id) {
-                await loadProjects(currentUser.id);
-                navigate("/projects", { replace: true });
-            }
-        } catch (error) {
-            setAuthError(error.message || "Authentication failed");
-        } finally {
-            setAuthLoading(false);
+        if (isLoaded && isSignedIn) {
+            loadProjects();
         }
-    };
+        if (isLoaded && !isSignedIn) {
+            setProjects([]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoaded, isSignedIn]);
 
     const checkSlug = async () => {
         const cleanedSlug = projectForm.slug.trim();
@@ -156,7 +87,7 @@ function AppShell() {
 
     const handleProjectCreate = async (event) => {
         event.preventDefault();
-        if (!user?.id) return false;
+        if (!isSignedIn) return false;
 
         setProjectMutationLoading(true);
         setProjectError("");
@@ -166,7 +97,10 @@ function AppShell() {
                 name: projectForm.name,
                 slug: projectForm.slug,
                 githubUrl: projectForm.githubUrl,
-                customDomain: projectForm.useCustomDomain && projectForm.customDomain ? projectForm.customDomain : null,
+                customDomain:
+                    projectForm.useCustomDomain && projectForm.customDomain
+                        ? projectForm.customDomain
+                        : null,
             };
             await callApi("/project/create", {
                 method: "POST",
@@ -180,7 +114,7 @@ function AppShell() {
                 useCustomDomain: false,
             });
             setSlugState({ checking: false, available: null });
-            await loadProjects(user.id);
+            await loadProjects();
             return true;
         } catch (error) {
             setProjectError(error.message || "Could not create project");
@@ -191,39 +125,22 @@ function AppShell() {
     };
 
     const refreshAll = async () => {
-        if (!user?.id) return;
-        await loadProjects(user.id);
+        if (!isSignedIn) return;
+        await loadProjects();
         setRefreshTick((previous) => previous + 1);
     };
 
+    // Show nothing while Clerk is still loading its session
+    if (!isLoaded) return null;
+
     return (
         <Routes>
-            <Route path="/" element={<LandingPage user={user} setAuthMode={setAuthMode} />} />
-            <Route
-                path="/auth"
-                element={
-                    user ? (
-                        <Navigate to="/projects" replace />
-                    ) : (
-                        <AuthView
-                            authMode={authMode}
-                            setAuthMode={setAuthMode}
-                            authForm={authForm}
-                            setAuthForm={setAuthForm}
-                            authLoading={authLoading}
-                            authError={authError}
-                            onSubmit={handleAuthSubmit}
-                        />
-                    )
-                }
-            />
+            <Route path="/" element={<LandingPage />} />
             <Route
                 path="/projects"
                 element={
-                    user ? (
+                    isSignedIn ? (
                         <ProjectsPage
-                            user={user}
-                            setUser={setUser}
                             projects={projects}
                             projectsLoading={projectsLoading}
                             projectForm={projectForm}
@@ -235,29 +152,28 @@ function AppShell() {
                             handleProjectCreate={handleProjectCreate}
                         />
                     ) : (
-                        <Navigate to="/auth?mode=login" replace />
+                        <Navigate to="/" replace />
                     )
                 }
             />
             <Route
                 path="/projects/:projectId/deployments"
                 element={
-                    user ? (
+                    isSignedIn ? (
                         <DeploymentsPage
-                            user={user}
-                            setUser={setUser}
                             projects={projects}
                             loadProjectById={loadProjectById}
                             refreshTick={refreshTick}
+                            refreshAll={refreshAll}
                         />
                     ) : (
-                        <Navigate to="/auth?mode=login" replace />
+                        <Navigate to="/" replace />
                     )
                 }
             />
-            <Route path="/about" element={<AboutPage user={user} setAuthMode={setAuthMode} />} />
-            <Route path="/privacy" element={<PrivacyPage user={user} setAuthMode={setAuthMode} />} />
-            <Route path="/terms" element={<TermsPage user={user} setAuthMode={setAuthMode} />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );

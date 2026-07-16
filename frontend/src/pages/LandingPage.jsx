@@ -6,14 +6,11 @@ import svelteIcon from "../assets/svelte-icon.webp";
 import vueIcon from "../assets/vue-icon.png";
 import viteIcon from "../assets/vite-icon.webp";
 import "../LandingPage.css";
+import { useUser, SignInButton, SignUpButton, UserButton } from '@clerk/react'
 
-export default function LandingPage({ user, setAuthMode }) {
+export default function LandingPage() {
     const navigate = useNavigate();
-
-    const handleAuthRedirect = (mode) => {
-        setAuthMode(mode);
-        navigate(`/auth?mode=${mode}`);
-    };
+    const { isSignedIn, user } = useUser();
 
     return (
         <div className="landing-page">
@@ -30,21 +27,19 @@ export default function LandingPage({ user, setAuthMode }) {
                         <a href="#why-us" className="lp-nav-link">Why Us</a>
                     </nav>
                     <div className="lp-nav-actions">
-                        {user ? (
+                        {isSignedIn ? (
                             <>
                                 <Link to="/projects" className="lp-nav-link">Dashboard</Link>
-                                <span className="lp-body-sm" style={{ color: "var(--lp-mute)", fontFamily: "var(--mono)" }}>
-                                    {user.fullname || user.email}
-                                </span>
+                                <UserButton afterSignOutUrl="/" />
                             </>
                         ) : (
                             <>
-                                <button onClick={() => handleAuthRedirect("login")} className="lp-btn lp-btn-ghost-sm">
-                                    Log In
-                                </button>
-                                <button onClick={() => handleAuthRedirect("register")} className="lp-btn lp-btn-primary-sm">
-                                    Sign Up
-                                </button>
+                                <SignInButton mode="modal">
+                                    <button className="lp-btn lp-btn-ghost-sm">Log In</button>
+                                </SignInButton>
+                                <SignUpButton mode="modal">
+                                    <button className="lp-btn lp-btn-primary-sm">Sign Up</button>
+                                </SignUpButton>
                             </>
                         )}
                     </div>
@@ -60,7 +55,7 @@ export default function LandingPage({ user, setAuthMode }) {
                     </span>
                     <h1 className="lp-display-xl">
                         Deploy frontend apps with a <br />
-                        <span style={{ 
+                        <span style={{
                             background: "linear-gradient(90deg, var(--lp-link) 0%, var(--lp-grad-preview-start) 50%, var(--lp-grad-preview-end) 100%)",
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
@@ -72,23 +67,17 @@ export default function LandingPage({ user, setAuthMode }) {
                     <p className="lp-hero-tagline">
                         From GitHub to a live website in minutes. No payments. No deployment limits. No complicated setup. Just connect your repository and click 'deploy'.
                     </p>
-                    
+
                     <div className="lp-hero-ctas">
-                        {user ? (
+                        {isSignedIn ? (
                             <Link to="/projects" className="lp-btn lp-btn-primary">
                                 Go to Dashboard
                             </Link>
                         ) : (
-                            <button onClick={() => handleAuthRedirect("register")} className="lp-btn lp-btn-primary">
-                                Deploy Now
-                            </button>
+                            <SignUpButton mode="modal">
+                                <button className="lp-btn lp-btn-primary">Deploy Now</button>
+                            </SignUpButton>
                         )}
-                        <a href="https://github.com/avishek0769/Cloudify" target="_blank" rel="noreferrer" className="lp-btn lp-btn-secondary">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style={{ marginRight: "8px" }}>
-                                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
-                            </svg>
-                            View GitHub
-                        </a>
                     </div>
                 </div>
             </section>
@@ -323,15 +312,7 @@ export default function LandingPage({ user, setAuthMode }) {
                             </ul>
                         </div>
                         <div className="lp-footer-col">
-                            <h4>Resources</h4>
-                            <ul>
-                                <li><a href="https://github.com/avishek0769/Cloudify" target="_blank" rel="noreferrer">GitHub</a></li>
-                                {/* <li><a href="#docs">Documentation</a></li> */}
-                                {/* <li><a href="#status">System Status</a></li> */}
-                            </ul>
-                        </div>
-                        <div className="lp-footer-col">
-                            <h4>Company</h4>
+                            <h4>Platform</h4>
                             <ul>
                                 <li><Link to="/about">About Us</Link></li>
                                 <li><Link to="/privacy">Privacy Policy</Link></li>

@@ -1,14 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import "../LandingPage.css";
+import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/react";
 
-export default function PrivacyPage({ user, setAuthMode }) {
+export default function PrivacyPage() {
     const navigate = useNavigate();
-
-    const handleAuthRedirect = (mode) => {
-        setAuthMode(mode);
-        navigate(`/auth?mode=${mode}`);
-    };
+    const { isSignedIn } = useUser();
 
     return (
         <div className="landing-page">
@@ -25,21 +22,19 @@ export default function PrivacyPage({ user, setAuthMode }) {
                         <Link to="/#how-it-works" className="lp-nav-link">How It Works</Link>
                     </nav>
                     <div className="lp-nav-actions">
-                        {user ? (
+                        {isSignedIn ? (
                             <>
                                 <Link to="/projects" className="lp-nav-link">Dashboard</Link>
-                                <span className="lp-body-sm" style={{ color: "var(--lp-mute)", fontFamily: "var(--mono)" }}>
-                                    {user.fullname || user.email}
-                                </span>
+                                <UserButton afterSignOutUrl="/" />
                             </>
                         ) : (
                             <>
-                                <button onClick={() => handleAuthRedirect("login")} className="lp-btn lp-btn-ghost-sm">
-                                    Log In
-                                </button>
-                                <button onClick={() => handleAuthRedirect("register")} className="lp-btn lp-btn-primary-sm">
-                                    Sign Up
-                                </button>
+                                <SignInButton mode="modal">
+                                    <button className="lp-btn lp-btn-ghost-sm">Log In</button>
+                                </SignInButton>
+                                <SignUpButton mode="modal">
+                                    <button className="lp-btn lp-btn-primary-sm">Sign Up</button>
+                                </SignUpButton>
                             </>
                         )}
                     </div>

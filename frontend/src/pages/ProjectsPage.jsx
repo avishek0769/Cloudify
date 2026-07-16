@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useClerk, useUser } from "@clerk/react";
 import { isoToReadable } from "../lib/date";
 import logoImg from "../assets/logo.png";
 import CreateProjectModal from "../components/CreateProjectModal";
 
 function ProjectsPage({
-    user,
-    setUser,
     projects,
     projectsLoading,
     projectForm,
@@ -18,11 +17,12 @@ function ProjectsPage({
     handleProjectCreate,
 }) {
     const navigate = useNavigate();
+    const { signOut } = useClerk();
+    const { user } = useUser();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const handleLogout = () => {
-        if (setUser) setUser(null);
-        navigate("/auth?mode=login");
+        signOut({ redirectUrl: "/" });
     };
 
     return (
@@ -47,7 +47,7 @@ function ProjectsPage({
                         {user && (
                             <div className="db-user-section">
                                 <span className="db-user-chip mono">
-                                    {user.fullname || user.email}
+                                    {user.fullName || user.primaryEmailAddress?.emailAddress}
                                 </span>
                                 <button 
                                     className="db-logout-btn btn btn-ghost" 

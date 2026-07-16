@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { callApi } from "../lib/api";
+import { useApi } from "../lib/api";
 
 function CreateProjectModal({
     isOpen,
@@ -12,6 +12,7 @@ function CreateProjectModal({
     projectError,
     handleProjectCreate,
 }) {
+    const callApi = useApi();
     const [verifyingDns, setVerifyingDns] = useState(false);
     const [dnsVerificationStatus, setDnsVerificationStatus] = useState(null);
 

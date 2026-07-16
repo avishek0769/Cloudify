@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useClerk, useUser } from "@clerk/react";
 import CreateDeploymentModal from "../components/CreateDeploymentModal";
-import { callApi } from "../lib/api";
+import { useApi } from "../lib/api";
 import { isoToReadable } from "../lib/date";
 import logoImg from "../assets/logo.png";
 
-function DeploymentsPage({ user, setUser, projects, loadProjectById, refreshTick }) {
+function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll }) {
     const navigate = useNavigate();
     const { projectId } = useParams();
+    const callApi = useApi();
+    const { signOut } = useClerk();
+    const { user } = useUser();
 
     const [deployments, setDeployments] = useState([]);
     const [deploymentsLoading, setDeploymentsLoading] = useState(false);
@@ -241,14 +245,8 @@ function DeploymentsPage({ user, setUser, projects, loadProjectById, refreshTick
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            await callApi("/user/logout", { method: "POST" });
-        } catch {
-            // Ignore logout API failures
-        }
-        setUser(null);
-        navigate("/auth?mode=login");
+    const handleLogout = () => {
+        signOut({ redirectUrl: "/" });
     };
 
     const handleSaveDomain = async () => {
@@ -360,7 +358,7 @@ function DeploymentsPage({ user, setUser, projects, loadProjectById, refreshTick
                         {user && (
                             <div className="db-user-section">
                                 <span className="db-user-chip mono">
-                                    {user.fullname || user.email}
+                                    {user.fullName || user.primaryEmailAddress?.emailAddress}
                                 </span>
                                 <button 
                                     className="db-logout-btn btn btn-ghost" 
