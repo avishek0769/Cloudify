@@ -62,6 +62,7 @@ const deployProject = asyncHandler(async (req, res) => {
                         { name: "WEBHOOK_SECRET", value: process.env.WEBHOOK_SECRET || "" },
                         { name: "AWS_ACCESS_KEY_ID", value: process.env.AWS_ACCESS_KEY_ID },
                         { name: "AWS_ACCESS_KEY_SECRET", value: process.env.AWS_ACCESS_KEY_SECRET },
+                        { name: "API_SERVER_HOST", value: process.env.API_SERVER_HOST || "" },
                     ],
                 },
             ],
