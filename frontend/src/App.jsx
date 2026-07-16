@@ -102,10 +102,11 @@ function AppShell() {
                         ? projectForm.customDomain
                         : null,
             };
-            await callApi("/project/create", {
+            const response = await callApi("/project/create", {
                 method: "POST",
                 body: JSON.stringify(payload),
             });
+            const newProjectId = response?.data?.newProject?.id;
             setProjectForm({
                 name: "",
                 slug: "",
@@ -115,7 +116,7 @@ function AppShell() {
             });
             setSlugState({ checking: false, available: null });
             await loadProjects();
-            return true;
+            return newProjectId || true;
         } catch (error) {
             setProjectError(error.message || "Could not create project");
             return false;

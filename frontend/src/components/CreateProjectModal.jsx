@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApi } from "../lib/api";
 
 function CreateProjectModal({
@@ -13,6 +14,7 @@ function CreateProjectModal({
     handleProjectCreate,
 }) {
     const callApi = useApi();
+    const navigate = useNavigate();
     const [verifyingDns, setVerifyingDns] = useState(false);
     const [dnsVerificationStatus, setDnsVerificationStatus] = useState(null);
 
@@ -25,9 +27,13 @@ function CreateProjectModal({
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const success = await handleProjectCreate(event);
-        if (success) {
+        const result = await handleProjectCreate(event);
+        if (result) {
             onClose();
+            // result is the new project ID if returned, otherwise true
+            if (typeof result === "string") {
+                navigate(`/projects/${result}/deployments`);
+            }
         }
     };
 
@@ -184,7 +190,7 @@ function CreateProjectModal({
                                 <p className="instruction-desc muted">
                                     Create a CNAME record with your DNS provider (e.g. Cloudflare, GoDaddy) pointing to the address below:
                                 </p>
-                                
+
                                 <div className="dns-record-details">
                                     <div className="dns-field">
                                         <span className="dns-label mono">TYPE</span>
@@ -227,7 +233,7 @@ function CreateProjectModal({
                                     >
                                         {verifyingDns ? "Checking propagation..." : "Verify DNS Connection"}
                                     </button>
-                                    
+
                                     {dnsVerificationStatus === "success" && (
                                         <div className="dns-status-badge success reveal">
                                             <span className="success-text mono">✓ DNS Configured Correctly</span>

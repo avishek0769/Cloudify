@@ -111,7 +111,7 @@ const verifyDns = asyncHandler(async (req, res) => {
     const verified = records.includes(`${subdomain}.${process.env.BASE_DOMAIN}`);
 
     if(verified) {
-        await generateSSL(project.customDomain);
+        await generateSSL(customDomain);
     }
 
     return res
