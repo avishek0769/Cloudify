@@ -40,6 +40,8 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
     const [deleteConfirmName, setDeleteConfirmName] = useState("");
     const [deleteError, setDeleteError] = useState("");
 
+    const [copiedCname, setCopiedCname] = useState(false);
+
     const selectedProject = useMemo(
         () => projects.find((project) => project.id === projectId) || null,
         [projects, projectId],
@@ -704,16 +706,40 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                                 value={`${selectedProject?.subdomain || "your-slug"}.cloudify.avishekadhikary.tech`}
                                                 className="dns-val-input mono"
                                             />
-                                            <button
-                                                type="button"
-                                                className="btn btn-ghost btn-copy"
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(`${selectedProject?.subdomain || "your-slug"}.cloudify.avishekadhikary.tech`);
-                                                    alert("CNAME Target Copied!");
-                                                }}
-                                            >
-                                                Copy
-                                            </button>
+                                            <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-ghost btn-copy"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(`${selectedProject?.subdomain || "your-slug"}.cloudify.avishekadhikary.tech`);
+                                                        setCopiedCname(true);
+                                                        setTimeout(() => setCopiedCname(false), 2000);
+                                                    }}
+                                                >
+                                                    Copy
+                                                </button>
+                                                {copiedCname && (
+                                                    <span style={{
+                                                        position: "absolute",
+                                                        bottom: "calc(100% + 6px)",
+                                                        left: "50%",
+                                                        transform: "translateX(-50%)",
+                                                        background: "var(--success, #22c55e)",
+                                                        color: "#000",
+                                                        fontSize: "0.7rem",
+                                                        fontWeight: "600",
+                                                        fontFamily: "monospace",
+                                                        padding: "3px 8px",
+                                                        borderRadius: "4px",
+                                                        whiteSpace: "nowrap",
+                                                        pointerEvents: "none",
+                                                        animation: "fadeInUp 0.15s ease",
+                                                        zIndex: 100,
+                                                    }}>
+                                                        ✓ Copied!
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
