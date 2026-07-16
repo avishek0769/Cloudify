@@ -22,11 +22,10 @@ enum DeploymentStatus {
 
 model User {
     id           String    @id @unique @default(uuid())
+    clerkId      String    @unique
     fullname     String
     email        String    @unique
-    password     String
     projects     Project[]
-    refreshToken String?   @map("refresh_token")
     createdAt    DateTime  @default(now())
 }
 

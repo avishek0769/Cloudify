@@ -1,18 +1,17 @@
-import jwt from "jsonwebtoken";
+import { clerkClient } from "@clerk/express";
 import { prisma } from "../utils/prisma.js";
 
 const verifyStrictJWT = async (req, res, next) => {
     try {
-        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
-        if (!token) {
-            throw new Error("Access Token is required");
+        const clerkId = req.auth().userId;
+
+        if (!clerkId) {
+            return res.status(401).json({ message: "Unauthenticated" });
         }
 
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await prisma.user.findUnique({
-            where: {
-                id: decodedToken.userId,
-            },
+        // Check if user exists in database
+        let user = await prisma.user.findUnique({
+            where: { clerkId },
             select: {
                 id: true,
                 email: true,
@@ -20,35 +19,39 @@ const verifyStrictJWT = async (req, res, next) => {
             },
         });
 
-        if (!user) throw new Error("Invalid Access Token");
+        // Automatically create user in database if they don't exist
+        if (!user) {
+            try {
+                const clerkUser = await clerkClient.users.getUser(clerkId);
+                const email = clerkUser.emailAddresses[0]?.emailAddress || "";
+                const fullname = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || "User";
+
+                user = await prisma.user.create({
+                    data: {
+                        clerkId,
+                        email,
+                        fullname,
+                    },
+                    select: {
+                        id: true,
+                        email: true,
+                        fullname: true,
+                    }
+                });
+            } catch (err) {
+                console.error("Failed to automatically sync Clerk user to DB:", err);
+                return res.status(500).json({ message: "Failed to sync user profile" });
+            }
+        }
 
         req.user = user;
         next();
-    }
-    catch (error) {
-        console.log(error)
-        next(new Error("Your Access Token expired !"));
+    } catch (error) {
+        console.error("Clerk auth error:", error);
+        next(new Error("Authentication failed"));
     }
 };
 
-const verifyJWT = async (req, res, next) => {
-    const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
-
-    if (token) {
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await prisma.user.findUnique({
-            where: {
-                id: decodedToken.userId,
-            },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-            },
-        });
-        if (user) req.user = user;
-    }
-    next();
-};
+const verifyJWT = verifyStrictJWT;
 
 export { verifyStrictJWT, verifyJWT };

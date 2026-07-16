@@ -15,7 +15,7 @@ const projectRouter = Router();
 projectRouter.post("/create", verifyStrictJWT, createProject);
 projectRouter.post("/verify-dns", verifyStrictJWT, verifyDns);
 projectRouter.get("/slug/:slug", verifyStrictJWT, projectSlugAvailable);
-projectRouter.get("/all/:userId", verifyStrictJWT, getProjectsByUser);
+projectRouter.get("/all", verifyStrictJWT, getProjectsByUser);
 projectRouter.patch("/:projectId/domain", verifyStrictJWT, updateProjectCustomDomain);
 projectRouter.get("/:projectId", verifyStrictJWT, getProjectById);
 projectRouter.delete("/:projectId", verifyStrictJWT, deleteProject);

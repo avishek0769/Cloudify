@@ -132,7 +132,7 @@ const projectSlugAvailable = asyncHandler(async (req, res) => {
 });
 
 const getProjectsByUser = asyncHandler(async (req, res) => {
-    const { userId } = req.params;
+    const userId = req.user.id;
 
     const projects = await prisma.project.findMany({
         where: {
