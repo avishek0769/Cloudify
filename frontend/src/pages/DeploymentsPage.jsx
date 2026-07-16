@@ -341,9 +341,9 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
             <header className="db-navbar">
                 <div className="db-navbar-container">
                     <div className="db-navbar-left">
-                        <div 
-                            className="db-logo" 
-                            onClick={() => navigate("/")} 
+                        <div
+                            className="db-logo"
+                            onClick={() => navigate("/")}
                             style={{ cursor: "pointer" }}
                         >
                             <img src={logoImg} alt="Cloudify Logo" className="db-logo-img" />
@@ -360,8 +360,8 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                 <span className="db-user-chip mono">
                                     {user.fullName || user.primaryEmailAddress?.emailAddress}
                                 </span>
-                                <button 
-                                    className="db-logout-btn btn btn-ghost" 
+                                <button
+                                    className="db-logout-btn btn btn-ghost"
                                     onClick={handleLogout}
                                 >
                                     Logout
@@ -389,7 +389,7 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                     Back
                                 </button>
                             </div>
-                            
+
                             <div className="project-specs" style={{ display: "flex", flexDirection: "column", gap: "12px", padding: "16px 0", borderBottom: "1px solid var(--line)" }}>
                                 {/* Spec 1: Project Name */}
                                 <div className="spec-item">
@@ -413,18 +413,18 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
                                         {selectedProject?.customDomain ? (
                                             <>
-                                                <a 
-                                                    href={`https://${selectedProject.customDomain}`} 
-                                                    target="_blank" 
-                                                    rel="noreferrer" 
-                                                    className="mono" 
+                                                <a
+                                                    href={`https://${selectedProject.customDomain}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="mono"
                                                     style={{ fontSize: "0.8rem", color: "var(--success)", textDecoration: "none", borderBottom: "1px dashed var(--success)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "240px" }}
                                                 >
                                                     {selectedProject.customDomain}
                                                 </a>
-                                                <button 
-                                                    type="button" 
-                                                    className="btn btn-ghost" 
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-ghost"
                                                     style={{ padding: "2px 6px", fontSize: "0.72rem", minHeight: "auto", height: "auto", borderRadius: "4px" }}
                                                     onClick={() => {
                                                         setDomainInput(selectedProject.customDomain);
@@ -438,9 +438,9 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                         ) : (
                                             <>
                                                 <span className="muted mono" style={{ fontSize: "0.8rem" }}>None configured</span>
-                                                <button 
-                                                    type="button" 
-                                                    className="btn btn-ghost" 
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-ghost"
                                                     style={{ padding: "2px 6px", fontSize: "0.72rem", minHeight: "auto", height: "auto", borderRadius: "4px" }}
                                                     onClick={() => {
                                                         setDomainInput("");
@@ -482,11 +482,10 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                 {deployments.map((deployment) => (
                                     <button
                                         key={deployment.id}
-                                        className={`list-item ${
-                                            deployment.id === selectedDeploymentId
-                                                ? "active"
-                                                : ""
-                                        }`}
+                                        className={`list-item ${deployment.id === selectedDeploymentId
+                                            ? "active"
+                                            : ""
+                                            }`}
                                         onClick={() =>
                                             setSelectedDeploymentId(deployment.id)
                                         }
@@ -604,11 +603,10 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                 {logsError && <p className="error-text">{logsError}</p>}
 
                                 <div
-                                    className={`terminal ${
-                                        selectedDeployment?.status === "READY"
-                                            ? "terminal-full"
-                                            : ""
-                                    }`}
+                                    className={`terminal ${selectedDeployment?.status === "READY"
+                                        ? "terminal-full"
+                                        : ""
+                                        }`}
                                 >
                                     <p className="terminal-title">Persisted Logs</p>
                                     {persistedLogs.length === 0 && (
@@ -669,7 +667,7 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                         <form onSubmit={(e) => { e.preventDefault(); handleSaveDomain(); }} className="form-grid compact">
                             <label>
                                 Custom Domain Name
-                                <input 
+                                <input
                                     value={domainInput}
                                     onChange={(e) => {
                                         setDomainInput(e.target.value);
@@ -687,7 +685,7 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                 <p className="instruction-desc muted">
                                     Create a CNAME record with your DNS provider (e.g. Cloudflare, GoDaddy) pointing to the address below:
                                 </p>
-                                
+
                                 <div className="dns-record-details">
                                     <div className="dns-field">
                                         <span className="dns-label mono">TYPE</span>
@@ -733,7 +731,7 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                                     >
                                         {verifyingDns ? "Checking propagation..." : "Verify DNS Connection"}
                                     </button>
-                                    
+
                                     {dnsVerificationStatus === "success" && (
                                         <div className="dns-status-badge success reveal">
                                             <span className="success-text mono">✓ DNS Configured Correctly</span>
@@ -813,7 +811,7 @@ function DeploymentsPage({ projects, loadProjectById, refreshTick, refreshAll })
                             <p style={{ color: "var(--text)", fontSize: "0.95rem", lineHeight: "1.5", marginBottom: "12px" }}>
                                 This action <strong style={{ color: "var(--danger)" }}>cannot be undone</strong>. This will permanently delete the project <strong>{selectedProject?.name}</strong>, all its associated deployments, custom domains, and build logs.
                             </p>
-                            
+
                             <p className="muted" style={{ fontSize: "0.85rem", marginBottom: "16px" }}>
                                 Please type <span style={{ fontFamily: "var(--mono)", background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: "4px", color: "#ff6b6b" }}>{selectedProject?.name}</span> to confirm.
                             </p>
